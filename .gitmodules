@@ -1,0 +1,6 @@
+[submodule "realhand-python-sdk"]
+	path = realhand-python-sdk
+	url = https://github.com/realhand-dev/realhand-python-sdk.git
+[submodule "Agentic-Robot"]
+	path = Agentic-Robot
+	url = https://github.com/BIOROB-Lab-192/Agentic-Robot.git

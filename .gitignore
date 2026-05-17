@@ -1,0 +1,9 @@
+*.pyc
+**/install/
+**/build/
+**/log/
+Yolo26_Segmentation/yolo26n-seg.pt
+Yolo26_Segmentation/yolo26l-seg.pt
+Yolo26_Segmentation/mobileclip2_b.ts
+Agentic-Robot
+NotWorking_Hand_Pressure_Test3.py
