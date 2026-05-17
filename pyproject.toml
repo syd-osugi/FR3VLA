@@ -1,0 +1,17 @@
+[project]
+name = "agentic-robot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "cv2-enumerate-cameras>=1.3.3",
+    "numpy>=2.4.3",
+    "openai>=2.26.0",
+    "opencv-python>=4.13.0.92",
+    "pillow>=12.1.1",
+    "pyrealsense2>=2.56.5.9235 ; sys_platform == 'linux' or sys_platform == 'win32'",
+    "toolregistry>=0.6.0",
+    "ultralytics>=8.4.23",
+    "vidgear>=0.3.4",
+]
