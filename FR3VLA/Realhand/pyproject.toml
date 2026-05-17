@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "realhand-python-sdk"
+version = "0.1.1"
+description = ""
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [
+  { name = "RealHand", email = "support@realhand.com" }
+]
+license = { text = "MIT" }
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["RealHand*"]

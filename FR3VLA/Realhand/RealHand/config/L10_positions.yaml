@@ -1,0 +1,146 @@
+LEFT_HAND:
+- ACTION_NAME: Open
+  POSITION:
+  - 255
+  - 70
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+- ACTION_NAME: Pinch 5 cm
+  POSITION:
+  - 165
+  - 70
+  - 165
+  - 165
+  - 255
+  - 255
+  - 113
+  - 255
+  - 255
+  - 88
+- ACTION_NAME: Pinch 1 cm
+  POSITION:
+  - 150
+  - 70
+  - 155
+  - 155
+  - 255
+  - 255
+  - 113
+  - 255
+  - 255
+  - 88
+- ACTION_NAME: Grip 3 cm Object
+  POSITION:
+  - 113
+  - 70
+  - 85
+  - 85
+  - 85
+  - 85
+  - 85
+  - 255
+  - 255
+  - 88
+- ACTION_NAME: Prepare to Grasp
+  POSITION:
+  - 255
+  - 70
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 121
+- ACTION_NAME: Thumb Flexion
+  POSITION:
+  - 35
+  - 140
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 30
+- ACTION_NAME: Index Flexion
+  POSITION:
+  - 255
+  - 70
+  - 0
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+- ACTION_NAME: shishi
+  POSITION:
+  - 85
+  - 30
+  - 255
+  - 0
+  - 0
+  - 255
+  - 0
+  - 0
+  - 0
+  - 66
+RIGHT_HAND:
+- ACTION_NAME: Open
+  POSITION:
+  - 255
+  - 70
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+- ACTION_NAME: Pinch 5 cm
+  POSITION:
+  - 165
+  - 70
+  - 165
+  - 165
+  - 255
+  - 255
+  - 113
+  - 255
+  - 255
+  - 88
+- ACTION_NAME: Pinch 1 cm
+  POSITION:
+  - 150
+  - 70
+  - 155
+  - 155
+  - 255
+  - 255
+  - 113
+  - 255
+  - 255
+  - 88
+- ACTION_NAME: Prepare to Grasp
+  POSITION:
+  - 255
+  - 70
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 255
+  - 121
