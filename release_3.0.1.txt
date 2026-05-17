@@ -1,0 +1,35 @@
+Release_3.0.1
+1. Added RS485 communication support for O6 / L6 / L10 (pymodbus mode).
+
+Release_2.2.4
+1. Added support for the G20 Industrial Edition.
+2. Redrew / redesigned the GUI.
+
+Release_2.1.9
+1. Added support for O6.
+
+Release_2.1.4
+1. Added support for L21.
+2. Added support for a matrix-type pressure sensor.
+
+Release_2.1.3
+1. Added support for L10 using RealMan RML API2’s RS485 protocol.
+
+Release_2.1.2
+1. Added support for new sensors for L0 and L21.
+
+Release_1.3.6
+1. Added support for the L20 dexterous hand.
+2. Added support for the L25_V2 dexterous hand.
+
+Release_1.3.5
+1. Added support for the L25 dexterous hand.
+2. Added support for the L7 / O7 dexterous hand.
+3. Fixed bugs in this part.
+
+Release_1.2.1
+1. Fixed an issue where the right hand wouldn’t move when using L10 single right-hand mode.
+2. Added pressure sensor data acquisition for L10 single/double-hand configurations.
+3. Added real-time acquisition of current / faults / torque info for L10 and L20.
+4. Added pressure sensor data acquisition for L20 single/double-hand configurations.
+5. Added real-time modification (setting) of current / faults / torque info for L20.
