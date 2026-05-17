@@ -1,0 +1,58 @@
+VERSION: 2.2.4 # Added G20 industrial version
+REAL_HAND:  # Hand configuration info
+  LEFT_HAND:
+    EXISTS: True # Whether the left hand exists
+    TOUCH: True # Whether there is a pressure sensor
+    CAN: "can0"  # Configure CAN port (default can0). If MODUBS is not "None", CAN config is ignored
+    MODBUS: "None" # Whether the communication protocol is 485. Default None. If 485 is enabled, set to the device port /dev/ttyUSB*. CAN config is ignored. Currently only supports O6/L6; more models coming
+    JOINT: G20 # Left-hand model O6/L6/L7/L10/L20/G20/L21/L25/L30
+    NAME: # Default values, do not modify
+      - joint41
+      - joint42
+      - joint43
+      - joint44
+      - joint45
+      - joint46
+      - joint47
+      - joint48
+      - joint49
+      - joint50
+      - joint51
+      - joint52
+      - joint53
+      - joint54
+      - joint55
+      - joint56
+      - joint57
+      - joint58
+      - joint59
+      - joint60
+    
+  RIGHT_HAND:
+    EXISTS: False # Whether the right hand exists
+    TOUCH: True # Whether there is a pressure sensor
+    CAN: "can0"  # Configure CAN port (default can0). If MODUBS is not "None", CAN config is ignored
+    MODBUS: "None" # Whether the communication protocol is 485. Default None. If 485 is enabled, set to the device port /dev/ttyUSB*. CAN config is ignored. Currently only supports O6/L6; more models coming
+    JOINT: G20 # Right-hand model O6/L6/L7/L10/L20/G20/L21/L25/L30
+    NAME:  # Default values, do not modify
+      - joint71
+      - joint72
+      - joint73
+      - joint77
+      - joint75
+      - joint76
+      - joint77
+      - joint78
+      - joint79
+      - joint80
+      - joint81
+      - joint82
+      - joint83
+      - joint84
+      - joint88
+      - joint86
+      - joint87
+      - joint88
+      - joint89
+      - joint90
+PASSWORD: "12345678" # Since CAN communication is used, a system administrator password is needed to activate the interface. Only required on Linux; not required on Windows. RS485 does not need this, but RS485 requires granting /dev/ttyUSB* 777 permissions
