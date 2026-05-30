@@ -3,14 +3,17 @@
 **/build/
 **/log/
 
-Segmentation/YOLO26/mobileclip2_b.ts
-Segmentation/YOLO26/yolo26n-seg.pt
-Segmentation/YOLO26/yoloe-26l-seg.pt
-Segmentation/YOLO26/NeedToCheck_RealSenseD405_Test5.py
-Segmentation/YOLO26/NeedTo_Check_RealSenseD405_DepthColor_Seg_Test6.py
-Segmentation/YOLO26/Yolo_Output
+Module_Tests/Segmentation/YOLO26/mobileclip2_b.ts
+Module_Tests/Segmentation/YOLO26/yolo26n-seg.pt
+Module_Tests/Segmentation/YOLO26/yoloe-26l-seg.pt
+Module_Tests/Segmentation/YOLO26/NeedToCheck_RealSenseD405_Test5.py
+Module_Tests/Segmentation/YOLO26/NeedTo_Check_RealSenseD405_DepthColor_Seg_Test6.py
+Module_Tests/Segmentation/YOLO26/Yolo_Output
 
 Agentic-Robot
+
+Working/LLM_Script/mmproj-F16.gguf
+Working/LLM_Script/Qwen3.5-4B-Q4_K_M.gguf
 
 NotWorking_Hand_Pressure_Test3.py
 Realhand/Tests_Realhand/PressureState_JointState_Time_Plot_Test3_Output
