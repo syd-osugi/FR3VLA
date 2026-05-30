@@ -1,12 +1,14 @@
 ###########################
+# Test 7: LLM tool dispatch and image formatting.
+#
 # Tests the "Grounding" pipeline. It fakes an LLM command to trigger the camera tool. 
 # It checks if the code successfully takes a picture, compresses it to a JPEG using your 
 # config settings, converts it to base64 text, and formats it exactly how the LLM expects it.
 # If this fails: OpenCV is broken, Pillow is missing, or the JSON formatting for the LLM is wrong.
 ###########################
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'working'))
+from _working_test_utils import add_working_to_path
+
+add_working_to_path()
 
 import config as cfg
 from hardware.camera import RealSense

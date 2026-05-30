@@ -30,6 +30,25 @@ def add_working_to_path() -> None:
 add_working_to_path()
 
 
+def unique_output_path(path: Path) -> Path:
+    """
+    Return a non-existing path by adding a numeric suffix when needed.
+
+    Test output images are evidence from a specific run, so overwriting them can
+    hide useful debugging history. If d435_frame_00.png already exists, this
+    returns d435_frame_00_001.png, then _002, and so on.
+    """
+    if not path.exists():
+        return path
+
+    for index in range(1, 10000):
+        candidate = path.with_name(f"{path.stem}_{index:03d}{path.suffix}")
+        if not candidate.exists():
+            return candidate
+
+    raise RuntimeError(f"Could not find an unused output path for {path}")
+
+
 def require(condition: bool, message: str) -> None:
     """Raise AssertionError with a readable message when condition is false."""
     if not condition:

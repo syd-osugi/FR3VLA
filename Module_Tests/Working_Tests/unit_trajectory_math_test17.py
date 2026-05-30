@@ -1,5 +1,5 @@
 """
-Test 15: Robot trajectory and transform math with temporary calibration files.
+Test 17: Robot trajectory and transform math with temporary calibration files.
 """
 
 from __future__ import annotations

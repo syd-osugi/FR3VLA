@@ -1,7 +1,7 @@
 VERSION: 2.2.4 # Added G20 industrial version
 REAL_HAND:  # Hand configuration info
   LEFT_HAND:
-    EXISTS: True # Whether the left hand exists
+    EXISTS: False # Whether the left hand exists
     TOUCH: True # Whether there is a pressure sensor
     CAN: "can0"  # Configure CAN port (default can0). If MODUBS is not "None", CAN config is ignored
     MODBUS: "None" # Whether the communication protocol is 485. Default None. If 485 is enabled, set to the device port /dev/ttyUSB*. CAN config is ignored. Currently only supports O6/L6; more models coming
@@ -28,12 +28,14 @@ REAL_HAND:  # Hand configuration info
       - joint59
       - joint60
     
+  # run first on Lab laptop to access CAN interface, then run on the RealHand laptop.
+  # sudo /usr/bin/ip link set can0 down && sudo /usr/bin/ip link set can0 type can bitrate 1000000 && sudo /usr/bin/ip link set can0 up
   RIGHT_HAND:
-    EXISTS: False # Whether the right hand exists
+    EXISTS: True # Whether the right hand exists
     TOUCH: True # Whether there is a pressure sensor
     CAN: "can0"  # Configure CAN port (default can0). If MODUBS is not "None", CAN config is ignored
     MODBUS: "None" # Whether the communication protocol is 485. Default None. If 485 is enabled, set to the device port /dev/ttyUSB*. CAN config is ignored. Currently only supports O6/L6; more models coming
-    JOINT: G20 # Right-hand model O6/L6/L7/L10/L20/G20/L21/L25/L30
+    JOINT: L6 # Right-hand model O6/L6/L7/L10/L20/G20/L21/L25/L30
     NAME:  # Default values, do not modify
       - joint71
       - joint72

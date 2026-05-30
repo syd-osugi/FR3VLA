@@ -1,5 +1,5 @@
 """
-Test 16: Pixel localization helper behavior without cameras.
+Test 18: Pixel localization helper behavior without cameras.
 """
 
 from __future__ import annotations

@@ -1,5 +1,5 @@
 """
-Test 18: Tool dispatcher validation and trajectory routing without cameras.
+Test 20: Tool dispatcher validation and trajectory routing without cameras.
 """
 
 from __future__ import annotations

@@ -1,5 +1,5 @@
 """
-Test 14: Calibration math helpers without cameras or OpenCV.
+Test 16: Calibration math helpers without cameras or OpenCV.
 """
 
 from __future__ import annotations

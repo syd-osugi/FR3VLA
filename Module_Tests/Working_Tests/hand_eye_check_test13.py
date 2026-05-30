@@ -1,11 +1,11 @@
 """
-Test 11: Hand-Eye Check
+Test 13: Hand-Eye Check
 -------------------------
 Verifies the D405 extrinsic calibration file is valid and mathematically sound.
 """
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'working'))
+from _working_test_utils import add_working_to_path
+
+add_working_to_path()
 
 import numpy as np
 import config as cfg

@@ -143,8 +143,11 @@ def _parse_bool(value, default):
 # If you have two D435s plugged in, Linux sees them as identical USB devices
 # unless you specify the serial number to force the correct one open.
 
-D435_SERIAL = os.getenv("D435_SERIAL", "YOUR_D435_SERIAL_HERE")
-D405_SERIAL = os.getenv("D405_SERIAL", "YOUR_D405_SERIAL_HERE")
+# to debug 
+# conda run -n Sydney python -c "import pyrealsense2 as rs; ctx=rs.context(); [print(d.get_info(rs.camera_info.name), d.get_info(rs.camera_info.serial_number), d.get_info(rs.camera_info.usb_type_descriptor)) for d in ctx.query_devices()]"
+
+D435_SERIAL = os.getenv("D435_SERIAL", "044322073387")
+D405_SERIAL = os.getenv("D405_SERIAL", "130322273025")
 
 # Image resolution in pixels (width, height).
 # Higher resolution = more detail but slower processing and more RAM usage.

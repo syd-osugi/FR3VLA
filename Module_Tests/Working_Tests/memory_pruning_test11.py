@@ -1,14 +1,16 @@
 """
-Test 9: Memory Pruning Verification
+Test 11: Memory Pruning Verification
 ------------------------------------
 Directly tests the LLM interface memory management without needing a real LLM server.
 hat the prune_image_history() function in llm_interface.py actually deletes the giant 
 500,000-character base64 strings from the LLM's memory, but leaves normal text alone. 
 If this fails, your robot will work for 5 minutes and then crash with an "Out of Memory" error.
 """
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'working'))
+
+from _working_test_utils import add_working_to_path
+
+add_working_to_path()
 
 import base64
 from io import BytesIO

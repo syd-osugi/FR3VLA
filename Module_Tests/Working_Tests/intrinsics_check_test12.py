@@ -1,5 +1,5 @@
 """
-Test 10: Intrinsic Validation Check (D435 & D405)
+Test 12: Intrinsic Validation Check (D435 & D405)
 --------------------------------------------------
 Ensures that saved calibration files exactly match the plugged-in hardware.
 
@@ -9,9 +9,9 @@ Ensures that saved calibration files exactly match the plugged-in hardware.
  loops through both the D435 and D405 serial numbers, checks their specific 
  JSON files, and validates both independently.
 """
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'working'))
+from _working_test_utils import add_working_to_path
+
+add_working_to_path()
 
 import config as cfg
 from hardware.camera import RealSense

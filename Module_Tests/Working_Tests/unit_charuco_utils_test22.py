@@ -1,5 +1,5 @@
 """
-Test 20: ChArUco helper behavior with fake OpenCV objects.
+Test 22: ChArUco helper behavior with fake OpenCV objects.
 """
 
 from __future__ import annotations

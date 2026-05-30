@@ -14,7 +14,7 @@ python3 Module_Tests/Working_Tests/run_unit_tests.py
 Run one slice while debugging:
 
 ```bash
-python3 Module_Tests/Working_Tests/unit_trajectory_math_test15.py
+python3 Module_Tests/Working_Tests/unit_trajectory_math_test17.py
 python3 Module_Tests/Working_Tests/run_unit_tests.py --pattern "unit_charuco*"
 ```
 

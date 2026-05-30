@@ -1,5 +1,5 @@
 """
-Test 12: Config parsing and import safety.
+Test 14: Config parsing and import safety.
 
 This script checks small, no-hardware pieces first: config parsers, environment
 overrides, and importability of modules that should not open cameras on import.

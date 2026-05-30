@@ -1,5 +1,5 @@
 """
-Test 13: Pixel-to-XYZ math with fake RealSense frames.
+Test 15: Pixel-to-XYZ math with fake RealSense frames.
 
 No camera is opened. A fake pyrealsense2 module and fake depth frame isolate the
 coordinate conversion behavior.

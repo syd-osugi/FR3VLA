@@ -1,11 +1,13 @@
 ###########################
+# Test 6: LLM server connection.
+#
 # Tests if your local LLM server (LM Studio or llama.cpp) is actually turned on 
 # and accessible at the URL you put in config.py. It sends a tiny text message and waits for a response.
 # If this fails: You forgot to open LM Studio, or the port number in config.py is wrong.
 ###########################
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'working'))
+from _working_test_utils import add_working_to_path
+
+add_working_to_path()
 
 import config as cfg
 

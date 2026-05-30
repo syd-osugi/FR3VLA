@@ -1,14 +1,14 @@
 """
-Test 6: Configuration Dynamics
+Test 8: Configuration Dynamics
 --------------------------------
 Verifies that changing config.py actually changes the text sent to the LLM.
 That if you change the resolution in config.py from 640x480 to 1280x720, the LLM tool 
 descriptions and system prompts actually update themselves. If you forget an f-string somewhere, 
 the LLM will think the image is 640x480 when it's actually 1280x720, and all coordinates will fail.
 """
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'working'))
+from _working_test_utils import add_working_to_path
+
+add_working_to_path()
 
 import config as cfg
 import vision.tools as tools

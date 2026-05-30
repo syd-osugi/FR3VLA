@@ -1,5 +1,5 @@
 """
-Test 19: Synchronized camera frame helper behavior with fake cameras.
+Test 21: Synchronized camera frame helper behavior with fake cameras.
 """
 
 from __future__ import annotations

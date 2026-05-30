@@ -1,5 +1,5 @@
 """
-Test 17: Policy action contracts, safety filtering, and dry-run inference.
+Test 19: Policy action contracts, safety filtering, and dry-run inference.
 """
 
 from __future__ import annotations

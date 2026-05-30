@@ -1,14 +1,14 @@
 """
-Test 8: LLM Hallucination Handling
+Test 10: LLM Hallucination Handling
 -----------------------------------
 Simulates the LLM sending completely broken JSON to the tool dispatcher.
 LLMs are chaotic. Sometimes they send [u, v] as strings "['320', '240']" instead of integers, 
 or they send three numbers instead of two. This tests if tools.py safely rejects garbage 
 data without crashing the whole robot program.
 """
-import sys
-import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'working'))
+from _working_test_utils import add_working_to_path
+
+add_working_to_path()
 
 import config as cfg
 from hardware.camera import RealSense
