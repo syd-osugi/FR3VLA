@@ -7,6 +7,7 @@ live here.
 """
 
 import os
+from numbers import Integral
 
 import config as cfg
 from robot.trajectory import translate_point_to_robot_frame
@@ -20,6 +21,10 @@ def _load_cv2():
         return cv2
     except ModuleNotFoundError:
         return None
+
+
+def _is_integer_pixel(value):
+    return isinstance(value, Integral) and not isinstance(value, bool)
 
 
 def process_pixel(point, resolution, depth_rs, depth_scale, source_camera, robot_ee_pose=None):
@@ -46,14 +51,13 @@ def process_pixel(point, resolution, depth_rs, depth_scale, source_camera, robot
             "reason": f"Expected [u, v] format, got: {point}",
         }
 
-    try:
-        u, v = int(point[0]), int(point[1])
-    except (TypeError, ValueError):
+    if not all(_is_integer_pixel(value) for value in point):
         return {
             "pixel": list(point),
             "status": "invalid",
             "reason": f"Pixel values must be integers, got: {point}",
         }
+    u, v = int(point[0]), int(point[1])
 
     width, height = resolution
     if not (0 <= u < width and 0 <= v < height):

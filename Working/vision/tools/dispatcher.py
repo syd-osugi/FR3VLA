@@ -18,6 +18,7 @@ Important limitation:
 """
 
 import json
+from numbers import Integral
 
 import config as cfg
 from robot.trajectory import get_robot_trajectory_to_point, translate_points_fused
@@ -53,12 +54,34 @@ def _camera_from_name(camera_name, d435_cam, d405_cam):
     raise ValueError(f"Unknown camera: {camera_name}")
 
 
-def _validate_nonempty_coords(coords):
-    if not isinstance(coords, list) or len(coords) == 0:
+def _is_integer_pixel(value):
+    return isinstance(value, Integral) and not isinstance(value, bool)
+
+
+def _validate_coord_pairs(coords, name, require_nonempty=False):
+    if not isinstance(coords, list):
         return (
-            "Error: 'coords' must be a non-empty list of [u, v] pixel pairs. "
+            f"Error: '{name}' must be a list of [u, v] pixel pairs. "
             "Example: {\"coords\": [[320, 240]]}"
         )
+
+    if require_nonempty and len(coords) == 0:
+        return (
+            f"Error: '{name}' must be a non-empty list of [u, v] pixel pairs. "
+            "Example: {\"coords\": [[320, 240]]}"
+        )
+
+    for index, point in enumerate(coords):
+        if not isinstance(point, (list, tuple)) or len(point) != 2:
+            return (
+                f"Error: invalid '{name}' item {index}: expected [u, v] pixel pair, "
+                f"got {point!r}."
+            )
+        if not all(_is_integer_pixel(value) for value in point):
+            return (
+                f"Error: invalid '{name}' item {index}: pixel values must be integers, "
+                f"got {point!r}."
+            )
     return None
 
 
@@ -66,8 +89,9 @@ def _optional_coords(tool_args, name):
     coords = tool_args.get(name)
     if coords is None:
         return [], None
-    if not isinstance(coords, list):
-        return [], f"Error: '{name}' must be a list of [u, v] pixel pairs or null."
+    error = _validate_coord_pairs(coords, name)
+    if error:
+        return [], error + " Use null only when that camera cannot see the object."
     return coords, None
 
 
@@ -132,7 +156,7 @@ def handle_get_xyz_single(tool_name, tool_args, d435_cam, d405_cam, robot_ee_pos
     """
     camera_name = "d435" if tool_name == "get_xyz_d435" else "d405"
     coords = tool_args.get("coords", [])
-    error = _validate_nonempty_coords(coords)
+    error = _validate_coord_pairs(coords, "coords", require_nonempty=True)
     if error:
         return error, None
 

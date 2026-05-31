@@ -313,6 +313,7 @@ def main():
 
   INSTRUCTIONS:
     - Move the robot to varied positions and wrist orientations.
+    - Watch the preview: green means the mounted board is recognized.
     - Press 's' when the board is detected and the robot is still.
     - Capture {poses_required} poses.
     - Press 'q' to quit early after at least 3 good poses.
@@ -347,10 +348,13 @@ def main():
             )
             detected = detection["success"]
             T_board_to_cam = detection["T_board_to_cam"]
+            marker_count = detection.get("marker_count", 0)
+            charuco_count = detection.get("charuco_count", 0)
 
             display = color_image.copy()
+            draw_charuco_detection(cv2, display, detection)
+
             if detected:
-                draw_charuco_detection(cv2, display, detection)
                 draw_pose_axes(
                     cv2,
                     display,
@@ -361,21 +365,49 @@ def main():
                 )
                 cv2.putText(
                     display,
-                    "CHARUCO DETECTED - Press 's' to capture",
+                    f"CHARUCO DETECTED: {charuco_count} corners",
                     (20, 40),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7,
                     (0, 255, 0),
                     2,
                 )
-            else:
                 cv2.putText(
                     display,
-                    "Searching for mounted ChArUco board...",
+                    "Press 's' to capture this pose",
+                    (20, 75),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.65,
+                    (0, 255, 0),
+                    2,
+                )
+            else:
+                if marker_count:
+                    status = (
+                        f"PARTIAL BOARD: {marker_count} markers, "
+                        f"{charuco_count} corners"
+                    )
+                    color = (0, 220, 255)
+                else:
+                    status = "Searching for mounted ChArUco board..."
+                    color = (0, 0, 255)
+
+                cv2.putText(
+                    display,
+                    status,
                     (20, 40),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     0.7,
-                    (0, 0, 255),
+                    color,
+                    2,
+                )
+                cv2.putText(
+                    display,
+                    "Move until the board status turns green",
+                    (20, 75),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.65,
+                    color,
                     2,
                 )
 

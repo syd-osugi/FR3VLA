@@ -41,6 +41,18 @@ def _stop_camera(camera, name):
     except Exception as exc:
         print(f"Warning: failed to stop {name}: {exc}")
 
+def _release_robot(robot):
+    """
+    Releases a Franka robot connection when the Python binding exposes an
+    explicit cleanup hook.
+
+    Some pylibfranka builds rely on Python object destruction instead of a
+    close() method, so cleanup must be best-effort.
+    """
+    close = getattr(robot, "close", None)
+    if callable(close):
+        close()
+
 def get_robot_ee_pose():
     """
     Gets the current robot end-effector pose.
@@ -48,16 +60,22 @@ def get_robot_ee_pose():
     Returns:
         numpy.ndarray: 4x4 transform matrix, or None if robot not available
     """
+    robot = None
     try:
         from pylibfranka import Robot
         robot = Robot(cfg.FRANKA_IP)
         state = robot.read_once()
         T_ee = np.array(state.O_T_EE).reshape((4, 4), order='F')
-        robot.close()  # Or keep connection open depending on your setup
         return T_ee
     except Exception as e:
         print(f"Warning: could not read robot end-effector pose: {e}")
         return None
+    finally:
+        if robot is not None:
+            try:
+                _release_robot(robot)
+            except Exception as exc:
+                print(f"Warning: failed to release robot connection: {exc}")
 
 def main():
     # Initialize these as None so the finally block can safely check them if we crash early

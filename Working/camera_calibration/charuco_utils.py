@@ -118,6 +118,21 @@ def _refine_detected_markers(cv2, gray_image, charuco_board, corners, ids, rejec
         return corners, ids, rejected
 
 
+def _detect_markers(cv2, gray_image, aruco_dict, detector_params=None):
+    """Detects ArUco markers while tolerating OpenCV API differences."""
+    if detector_params is None:
+        return cv2.aruco.detectMarkers(gray_image, aruco_dict)
+
+    try:
+        return cv2.aruco.detectMarkers(
+            gray_image,
+            aruco_dict,
+            parameters=detector_params,
+        )
+    except TypeError:
+        return cv2.aruco.detectMarkers(gray_image, aruco_dict)
+
+
 def _interpolate_charuco_corners(
     cv2,
     corners,
@@ -151,6 +166,108 @@ def _interpolate_charuco_corners(
         )
 
 
+def _id_count(ids):
+    """Returns the number of marker/corner IDs in an OpenCV-style ID array."""
+    return 0 if ids is None else len(ids)
+
+
+def detect_charuco_corners(
+    cv2,
+    gray_image,
+    aruco_dict,
+    charuco_board,
+    detector_params=None,
+    camera_matrix=None,
+    dist_coeffs=None,
+    min_markers=4,
+    min_corners=4,
+):
+    """
+    Detects ArUco markers and interpolates ChArUco corners.
+
+    Returns a dictionary with raw marker detections, interpolated ChArUco
+    corners, counts for live operator feedback, and a success flag.
+    """
+    corners, ids, rejected = _detect_markers(
+        cv2,
+        gray_image,
+        aruco_dict,
+        detector_params=detector_params,
+    )
+
+    marker_count = _id_count(ids)
+    result = {
+        "success": False,
+        "marker_corners": corners,
+        "marker_ids": ids,
+        "rejected_markers": rejected,
+        "charuco_corners": None,
+        "charuco_ids": None,
+        "marker_count": marker_count,
+        "charuco_count": 0,
+        "reason": f"Need at least {min_markers} markers",
+    }
+
+    if marker_count < min_markers:
+        return result
+
+    corners, ids, rejected = _refine_detected_markers(
+        cv2,
+        gray_image,
+        charuco_board,
+        corners,
+        ids,
+        rejected,
+    )
+    marker_count = _id_count(ids)
+    result.update(
+        {
+            "marker_corners": corners,
+            "marker_ids": ids,
+            "rejected_markers": rejected,
+            "marker_count": marker_count,
+        }
+    )
+    if marker_count < min_markers:
+        return result
+
+    retval, charuco_corners, charuco_ids = _interpolate_charuco_corners(
+        cv2,
+        corners,
+        ids,
+        gray_image,
+        charuco_board,
+        camera_matrix,
+        dist_coeffs,
+    )
+
+    charuco_count = _id_count(charuco_ids)
+    result.update(
+        {
+            "marker_corners": corners,
+            "marker_ids": ids,
+            "rejected_markers": rejected,
+            "charuco_corners": charuco_corners,
+            "charuco_ids": charuco_ids,
+            "marker_count": marker_count,
+            "charuco_count": charuco_count,
+            "reason": f"Need at least {min_corners} ChArUco corners",
+        }
+    )
+
+    if not retval or charuco_corners is None or charuco_ids is None:
+        return result
+
+    if charuco_count < min_corners:
+        return result
+
+    result["success"] = True
+    result["reason"] = (
+        f"{marker_count} markers, {charuco_count} ChArUco corners"
+    )
+    return result
+
+
 def detect_charuco_board_pose(
     cv2,
     gray_image,
@@ -173,49 +290,24 @@ def detect_charuco_board_pose(
     The board can be flat on the table for D405 hand-eye calibration or mounted
     to the wrist for D435 bird's-eye calibration. The pose math is identical.
     """
-    corners, ids, rejected = cv2.aruco.detectMarkers(gray_image, aruco_dict)
-
-    empty_result = {
-        "success": False,
-        "T_board_to_cam": None,
-        "marker_corners": corners,
-        "marker_ids": ids,
-        "charuco_corners": None,
-        "charuco_ids": None,
-    }
-
-    if ids is None or len(ids) < min_markers:
-        return empty_result
-
-    corners, ids, rejected = _refine_detected_markers(
+    corner_detection = detect_charuco_corners(
         cv2,
         gray_image,
+        aruco_dict,
         charuco_board,
-        corners,
-        ids,
-        rejected,
+        camera_matrix=camera_matrix,
+        dist_coeffs=dist_coeffs,
+        min_markers=min_markers,
+        min_corners=min_corners,
     )
+    empty_result = dict(corner_detection)
+    empty_result["T_board_to_cam"] = None
 
-    retval, charuco_corners, charuco_ids = _interpolate_charuco_corners(
-        cv2,
-        corners,
-        ids,
-        gray_image,
-        charuco_board,
-        camera_matrix,
-        dist_coeffs,
-    )
-
-    if (
-        not retval
-        or charuco_corners is None
-        or charuco_ids is None
-        or len(charuco_ids) < min_corners
-    ):
-        empty_result["marker_corners"] = corners
-        empty_result["marker_ids"] = ids
+    if not corner_detection["success"]:
         return empty_result
 
+    charuco_corners = corner_detection["charuco_corners"]
+    charuco_ids = corner_detection["charuco_ids"]
     object_points = get_charuco_object_points(charuco_board, charuco_ids)
 
     # solvePnP gives the transform from board coordinates to camera coordinates:
@@ -228,10 +320,7 @@ def detect_charuco_board_pose(
     )
 
     if not success:
-        empty_result["marker_corners"] = corners
-        empty_result["marker_ids"] = ids
-        empty_result["charuco_corners"] = charuco_corners
-        empty_result["charuco_ids"] = charuco_ids
+        empty_result["reason"] = "solvePnP failed"
         return empty_result
 
     rotation, _ = cv2.Rodrigues(rvec)
@@ -239,14 +328,9 @@ def detect_charuco_board_pose(
     T_board_to_cam[:3, :3] = rotation
     T_board_to_cam[:3, 3] = tvec.flatten()
 
-    return {
-        "success": True,
-        "T_board_to_cam": T_board_to_cam,
-        "marker_corners": corners,
-        "marker_ids": ids,
-        "charuco_corners": charuco_corners,
-        "charuco_ids": charuco_ids,
-    }
+    result = dict(corner_detection)
+    result["T_board_to_cam"] = T_board_to_cam
+    return result
 
 
 def draw_charuco_detection(cv2, image, detection):

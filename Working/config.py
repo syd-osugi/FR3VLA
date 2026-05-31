@@ -267,14 +267,14 @@ BIRD_EYE_D435_PATH = os.path.join(CALIBRATION_DIR, "d435_to_robot_base.json")
 
 # Number of INNER chessboard corners (not squares, not markers).
 # A 4x5 corner grid means 5x6 squares.
-INTRINSIC_BOARD_CORNERS = _parse_tuple(os.getenv("INTRINSIC_BOARD_CORNERS"), (4, 5))
+INTRINSIC_BOARD_CORNERS = _parse_tuple(os.getenv("INTRINSIC_BOARD_CORNERS"), (7, 10))
 
 # Physical size of each chessboard square in meters.
-INTRINSIC_SQUARE_SIZE = _parse_float(os.getenv("INTRINSIC_SQUARE_SIZE"), 0.035, min_value=0.001)
+INTRINSIC_SQUARE_SIZE = _parse_float(os.getenv("INTRINSIC_SQUARE_SIZE"), 0.020, min_value=0.001)
 
 # Physical size of each ArUco marker in meters.
 # Must be SMALLER than the square size so markers don't touch.
-INTRINSIC_MARKER_SIZE = _parse_float(os.getenv("INTRINSIC_MARKER_SIZE"), 0.025, min_value=0.001)
+INTRINSIC_MARKER_SIZE = _parse_float(os.getenv("INTRINSIC_MARKER_SIZE"), 0.015, min_value=0.001)
 
 # Number of images to capture for calibration.
 # More images = better accuracy, but 15-20 is typically sufficient.
