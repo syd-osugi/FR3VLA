@@ -21,3 +21,11 @@ python3 Module_Tests/Working_Tests/run_unit_tests.py --pattern "unit_charuco*"
 The unit scripts use fake cameras, fake depth frames, monkeypatched transforms,
 and temporary calibration JSON files. Use them first when changing math or tool
 routing, then run the hardware integration scripts once the small pieces pass.
+
+Calibration hardware checks:
+
+```bash
+python3 Module_Tests/Working_Tests/intrinsics_check_test12.py
+python3 Module_Tests/Working_Tests/d405_hand_eye_check_test13.py
+python3 Module_Tests/Working_Tests/d435_bird_eye_check_test23.py
+```

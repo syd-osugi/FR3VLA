@@ -18,11 +18,20 @@ def test_dispatcher_rejects_bad_tool_calls_without_hardware():
     text, _ = dispatcher.dispatch("get_xyz_d435", {"coords": []}, None, None)
     require("'coords' must be a non-empty list" in text, "empty coords should be rejected before capture")
 
+    text, _ = dispatcher.dispatch("get_xyz_d435", {"coords": [["320", "240"]]}, None, None)
+    require("invalid 'coords'" in text and "integers" in text, "string coords should be rejected before capture")
+
+    text, _ = dispatcher.dispatch("get_xyz_d435", {"coords": [[100, 200, 300]]}, None, None)
+    require("invalid 'coords'" in text and "expected [u, v]" in text, "bad coord length should be rejected before capture")
+
     text, _ = dispatcher.dispatch("get_xyz_fused", {}, None, None)
     require("provide coordinates from at least one camera" in text, "empty fused coords should be rejected before capture")
 
     text, _ = dispatcher.dispatch("get_xyz_fused", {"d435_coords": "not-list"}, None, None)
     require("'d435_coords' must be a list" in text, "bad optional coords should be rejected")
+
+    text, _ = dispatcher.dispatch("get_xyz_fused", {"d435_coords": [[100, 200, 300]]}, None, None)
+    require("invalid 'd435_coords'" in text and "expected [u, v]" in text, "bad fused coord length should be rejected before capture")
 
     text, _ = dispatcher.dispatch("get_xyz_d435", [], None, None)
     require("Tool arguments must be a JSON object" in text, "non-dict args should be rejected")

@@ -164,10 +164,33 @@ def test_detection_short_circuit_and_success_path():
         dist_coeffs=dist_coeffs,
     )
     require(result["success"] is False and result["T_board_to_cam"] is None, "missing markers should fail cleanly")
+    require(result["marker_count"] == 0 and result["charuco_count"] == 0, "missing markers should report zero counts")
+
+    partial_ids = np.array([[1], [2]], dtype=np.int32)
+    partial_cv2 = FakeCv2(FakeAruco(ids=partial_ids))
+    result = charuco_utils.detect_charuco_corners(
+        partial_cv2,
+        gray_image="gray",
+        aruco_dict={"dict_id": 10},
+        charuco_board=board,
+        detector_params=object(),
+    )
+    require(result["success"] is False, "partial marker detection should not be capturable")
+    require(result["marker_count"] == 2 and result["charuco_count"] == 0, "partial detection counts were not reported")
 
     ids = np.array([[1], [2], [3], [4]], dtype=np.int32)
     aruco = FakeAruco(ids=ids)
     cv2 = FakeCv2(aruco)
+    corner_result = charuco_utils.detect_charuco_corners(
+        cv2,
+        gray_image="gray",
+        aruco_dict={"dict_id": 10},
+        charuco_board=board,
+        detector_params=object(),
+    )
+    require(corner_result["success"] is True, f"expected successful fake corner detection, got {corner_result}")
+    require(corner_result["marker_count"] == 4 and corner_result["charuco_count"] == 4, "successful detection counts failed")
+
     result = charuco_utils.detect_charuco_board_pose(
         cv2,
         gray_image="gray",
