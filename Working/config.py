@@ -153,7 +153,7 @@ D405_SERIAL = os.getenv("D405_SERIAL", "130322273025")
 # Higher resolution = more detail but slower processing and more RAM usage.
 # D435 can do 640x480, 1280x720, or 1920x1080.
 # D405 is designed for close-up work; 1280x720 is its sweet spot.
-D435_RESOLUTION = _parse_tuple(os.getenv("D435_RESOLUTION"), (1280, 720))
+D435_RESOLUTION = _parse_tuple(os.getenv("D435_RESOLUTION"), (640,480))
 D405_RESOLUTION = _parse_tuple(os.getenv("D405_RESOLUTION"), (1280, 720))
 
 # Frame rate in frames per second.
@@ -311,7 +311,7 @@ HAND_EYE_CHARUCO_LEGACY_PATTERN = INTRINSIC_CHARUCO_LEGACY_PATTERN
 # Used by D405 hand-eye and D435 mounted-board calibration.
 # More poses = better accuracy, but each requires manually moving the robot.
 # Minimum is typically 10-15; 20 is a safe choice.
-HAND_EYE_POSES_REQUIRED = _parse_int(os.getenv("HAND_EYE_POSES_REQUIRED"), 20, min_value=5, max_value=50)
+HAND_EYE_POSES_REQUIRED = _parse_int(os.getenv("HAND_EYE_POSES_REQUIRED"), 6, min_value=5, max_value=50)
 
 
 # =============================================================================
@@ -409,6 +409,25 @@ FRANKA_COLLISION_FORCE_N = _parse_float(
     os.getenv("FRANKA_COLLISION_FORCE_N"),
     20.0,
     min_value=1.0,
+)
+
+# Keep this true while testing hardware commands manually. Set the environment
+# variable to false only when an outer controller/operator flow handles approval.
+FRANKA_REQUIRE_MOTION_CONFIRMATION = _parse_bool(
+    os.getenv("FRANKA_REQUIRE_MOTION_CONFIRMATION"),
+    True,
+)
+
+FRANKA_CARTESIAN_MOTION_TOLERANCE_M = _parse_float(
+    os.getenv("FRANKA_CARTESIAN_MOTION_TOLERANCE_M"),
+    0.0001,
+    min_value=0.0,
+)
+
+FRANKA_MIN_CARTESIAN_SEGMENT_DURATION_S = _parse_float(
+    os.getenv("FRANKA_MIN_CARTESIAN_SEGMENT_DURATION_S"),
+    0.10,
+    min_value=0.001,
 )
 
 

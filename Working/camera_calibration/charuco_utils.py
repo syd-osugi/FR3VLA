@@ -22,6 +22,9 @@ Why ChArUco:
 import numpy as np
 
 
+MIN_SOLVEPNP_POINTS = 6
+
+
 def require_charuco_support(cv2):
     """Raises a clear error if the installed OpenCV lacks ChArUco support."""
     if cv2 is None:
@@ -288,7 +291,7 @@ def detect_charuco_board_pose(
     camera_matrix,
     dist_coeffs,
     min_markers=4,
-    min_corners=4,
+    min_corners=MIN_SOLVEPNP_POINTS,
 ):
     """
     Detects a ChArUco board and estimates T_board_to_camera.
@@ -321,15 +324,28 @@ def detect_charuco_board_pose(
     charuco_corners = corner_detection["charuco_corners"]
     charuco_ids = corner_detection["charuco_ids"]
     object_points = get_charuco_object_points(charuco_board, charuco_ids)
+    point_count = len(object_points)
+
+    if point_count < MIN_SOLVEPNP_POINTS:
+        empty_result["success"] = False
+        empty_result["reason"] = (
+            f"Need at least {MIN_SOLVEPNP_POINTS} ChArUco corners for pose"
+        )
+        return empty_result
 
     # solvePnP gives the transform from board coordinates to camera coordinates:
     #     p_camera = T_board_to_cam @ p_board
-    success, rvec, tvec = cv2.solvePnP(
-        object_points,
-        charuco_corners,
-        camera_matrix,
-        dist_coeffs,
-    )
+    try:
+        success, rvec, tvec = cv2.solvePnP(
+            object_points,
+            charuco_corners,
+            camera_matrix,
+            dist_coeffs,
+        )
+    except cv2.error as exc:
+        empty_result["success"] = False
+        empty_result["reason"] = f"solvePnP failed: {exc}"
+        return empty_result
 
     if not success:
         empty_result["reason"] = "solvePnP failed"
