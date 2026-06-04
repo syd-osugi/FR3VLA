@@ -7,10 +7,16 @@
 
 import time, os, sys, csv
 from datetime import datetime
+from pathlib import Path
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 target_dir = os.path.abspath(os.path.join(current_dir, ".."))
 sys.path.append(target_dir)
+
+SCRIPT_NAME = Path(__file__).stem
+MODULE_TESTS_ROOT = Path(__file__).resolve().parents[2]
+OUTPUT_DIR = MODULE_TESTS_ROOT / "Test_Outputs" / SCRIPT_NAME
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from RealHand.real_hand_api import RealHandApi
 from RealHand.utils.load_write_yaml import LoadWriteYaml
@@ -129,7 +135,7 @@ print("Hand opened.")
 # --- Save Data to CSV ---
 timestamp_str = datetime.now().strftime('%Y%m%d_%H%M%S')
 csv_filename = f"realhand_log_{timestamp_str}.csv"
-csv_filepath = os.path.join(PressureState_JointState_Time_Plot_Test3_Output, csv_filename)
+csv_filepath = OUTPUT_DIR / csv_filename
 
 with open(csv_filepath, mode='w', newline='') as f:
     writer = csv.DictWriter(f, fieldnames=['time', 'max_pressure', 'j1', 'j2', 'j3', 'j4', 'j5', 'j6'])
@@ -180,7 +186,7 @@ try:
     
     # Save the image
     image_filename = f"realhand_plot_{timestamp_str}.png"
-    csv_filepath = os.path.join(PressureState_JointState_Time_Plot_Test3_Output, csv_filename)
+    image_filepath = OUTPUT_DIR / image_filename
     plt.savefig(image_filepath, dpi=150, bbox_inches='tight')
     print(f"Plot saved as image to {image_filepath}")
     

@@ -296,6 +296,7 @@ def main():
         cfg.BIRD_EYE_SQUARE_SIZE,
         cfg.BIRD_EYE_MARKER_SIZE,
         aruco_dict,
+        legacy_pattern=cfg.BIRD_EYE_CHARUCO_LEGACY_PATTERN,
     )
 
     camera_to_base_estimates = []
@@ -310,6 +311,11 @@ def main():
     - Keep the D435 fixed above the workspace.
     - Keep the ChArUco board rigidly mounted to the end-effector.
     - Move the robot so the D435 can see the board clearly.
+    - Board inner corners: {cfg.BIRD_EYE_BOARD_CORNERS}
+    - Square size: {cfg.BIRD_EYE_SQUARE_SIZE:.4f} m
+    - Marker size: {cfg.BIRD_EYE_MARKER_SIZE:.4f} m
+    - ArUco dictionary: {cfg.BIRD_EYE_ARUCO_DICT_NAME}
+    - Legacy ChArUco pattern: {cfg.BIRD_EYE_CHARUCO_LEGACY_PATTERN}
 
   INSTRUCTIONS:
     - Move the robot to varied positions and wrist orientations.

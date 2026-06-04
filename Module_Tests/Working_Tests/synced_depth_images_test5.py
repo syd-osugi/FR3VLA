@@ -10,7 +10,7 @@
 from pathlib import Path
 import time
 
-from _working_test_utils import REPO_ROOT, add_working_to_path, unique_output_path
+from _working_test_utils import TEST_OUTPUTS_DIR, add_working_to_path, unique_output_path
 
 add_working_to_path()
 
@@ -22,7 +22,7 @@ from hardware.camera import RealSense
 
 
 SCRIPT_NAME = Path(__file__).stem
-OUTPUT_DIR = REPO_ROOT / "Test_Outputs" / SCRIPT_NAME
+OUTPUT_DIR = TEST_OUTPUTS_DIR / SCRIPT_NAME
 OUTPUT_IMAGE_PATH = OUTPUT_DIR / "synced_depth_side_by_side.png"
 
 

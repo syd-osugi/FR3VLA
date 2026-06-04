@@ -207,6 +207,7 @@ def capture_images(camera, camera_name, serial_num, required_images):
     print(f"{'='*60}")
     print(f"Board size: {cfg.INTRINSIC_BOARD_CORNERS[0]}x{cfg.INTRINSIC_BOARD_CORNERS[1]} corners")
     print(f"Square size: {cfg.INTRINSIC_SQUARE_SIZE*100:.1f}cm, Marker size: {cfg.INTRINSIC_MARKER_SIZE*100:.1f}cm")
+    print(f"ArUco dictionary: {cfg.INTRINSIC_ARUCO_DICT_NAME}, Legacy pattern: {cfg.INTRINSIC_CHARUCO_LEGACY_PATTERN}")
     print(f"\nINSTRUCTIONS:")
     print(f"  - Hold the board at various angles and distances")
     print(f"  - Cover all corners and edges of the image")
@@ -231,6 +232,7 @@ def capture_images(camera, camera_name, serial_num, required_images):
         cfg.INTRINSIC_SQUARE_SIZE,
         cfg.INTRINSIC_MARKER_SIZE,
         aruco_dict,
+        legacy_pattern=cfg.INTRINSIC_CHARUCO_LEGACY_PATTERN,
     )
     detector_params = create_detector_params()
     

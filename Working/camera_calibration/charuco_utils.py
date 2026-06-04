@@ -55,7 +55,14 @@ def get_aruco_dictionary(cv2, dict_name):
     return cv2.aruco.getPredefinedDictionary(dict_id)
 
 
-def create_charuco_board(cv2, board_corners, square_size, marker_size, aruco_dict):
+def create_charuco_board(
+    cv2,
+    board_corners,
+    square_size,
+    marker_size,
+    aruco_dict,
+    legacy_pattern=False,
+):
     """
     Creates a ChArUco board object across OpenCV API versions.
 
@@ -67,20 +74,25 @@ def create_charuco_board(cv2, board_corners, square_size, marker_size, aruco_dic
     squares_y = board_corners[1] + 1
 
     if hasattr(cv2.aruco, "CharucoBoard_create"):
-        return cv2.aruco.CharucoBoard_create(
+        board = cv2.aruco.CharucoBoard_create(
             squares_x,
             squares_y,
             square_size,
             marker_size,
             aruco_dict,
         )
+    else:
+        board = cv2.aruco.CharucoBoard(
+            (squares_x, squares_y),
+            square_size,
+            marker_size,
+            aruco_dict,
+        )
 
-    return cv2.aruco.CharucoBoard(
-        (squares_x, squares_y),
-        square_size,
-        marker_size,
-        aruco_dict,
-    )
+    if legacy_pattern and hasattr(board, "setLegacyPattern"):
+        board.setLegacyPattern(True)
+
+    return board
 
 
 def get_charuco_object_points(charuco_board, charuco_ids):

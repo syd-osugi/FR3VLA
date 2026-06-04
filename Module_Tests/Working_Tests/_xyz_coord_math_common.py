@@ -12,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 import time
 
-from _working_test_utils import REPO_ROOT, add_working_to_path, unique_output_path
+from _working_test_utils import TEST_OUTPUTS_DIR, add_working_to_path, unique_output_path
 
 # These test scripts run from Module_Tests/Working_Tests, so add the real
 # Working folder before importing hardware/camera and utilities modules.
@@ -203,7 +203,7 @@ def run_xyz_coord_math_test(camera_name, serial_number, resolution, fps, script_
         print(f"Raw depth at tested {camera_name} pixel: {raw_depth}")
         print(f"PASS: {camera_name} X={xyz['x']:.3f}, Y={xyz['y']:.3f}, Z={xyz['z']:.3f} meters")
 
-        output_dir = REPO_ROOT / "Test_Outputs" / script_name
+        output_dir = TEST_OUTPUTS_DIR / script_name
         output_path = output_dir / f"{camera_name.lower()}_xyz_center_pixel.png"
         saved_image_path = save_marked_debug_image(
             camera_name,

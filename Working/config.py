@@ -153,7 +153,7 @@ D405_SERIAL = os.getenv("D405_SERIAL", "130322273025")
 # Higher resolution = more detail but slower processing and more RAM usage.
 # D435 can do 640x480, 1280x720, or 1920x1080.
 # D405 is designed for close-up work; 1280x720 is its sweet spot.
-D435_RESOLUTION = _parse_tuple(os.getenv("D435_RESOLUTION"), (640, 480))
+D435_RESOLUTION = _parse_tuple(os.getenv("D435_RESOLUTION"), (1280, 720))
 D405_RESOLUTION = _parse_tuple(os.getenv("D405_RESOLUTION"), (1280, 720))
 
 # Frame rate in frames per second.
@@ -267,10 +267,10 @@ BIRD_EYE_D435_PATH = os.path.join(CALIBRATION_DIR, "d435_to_robot_base.json")
 
 # Number of INNER chessboard corners (not squares, not markers).
 # A 4x5 corner grid means 5x6 squares.
-INTRINSIC_BOARD_CORNERS = _parse_tuple(os.getenv("INTRINSIC_BOARD_CORNERS"), (7, 10))
+INTRINSIC_BOARD_CORNERS = _parse_tuple(os.getenv("INTRINSIC_BOARD_CORNERS"), (10, 7))
 
 # Physical size of each chessboard square in meters.
-INTRINSIC_SQUARE_SIZE = _parse_float(os.getenv("INTRINSIC_SQUARE_SIZE"), 0.020, min_value=0.001)
+INTRINSIC_SQUARE_SIZE = _parse_float(os.getenv("INTRINSIC_SQUARE_SIZE"), 0.02, min_value=0.001)
 
 # Physical size of each ArUco marker in meters.
 # Must be SMALLER than the square size so markers don't touch.
@@ -280,8 +280,15 @@ INTRINSIC_MARKER_SIZE = _parse_float(os.getenv("INTRINSIC_MARKER_SIZE"), 0.015, 
 # More images = better accuracy, but 15-20 is typically sufficient.
 INTRINSIC_IMAGES_REQUIRED = _parse_int(os.getenv("INTRINSIC_IMAGES_REQUIRED"), 20, min_value=5, max_value=50)
 
-# ArUco dictionary to use. DICT_4X4_50 has 50 unique markers with 4x4 bit patterns.
-INTRINSIC_ARUCO_DICT_NAME = os.getenv("INTRINSIC_ARUCO_DICT_NAME", "DICT_4X4_50")
+# ArUco dictionary to use. DICT_5X5_50 has 50 unique markers with 5x5 bit patterns.
+INTRINSIC_ARUCO_DICT_NAME = os.getenv("INTRINSIC_ARUCO_DICT_NAME", "DICT_5X5_50")
+
+# Some printed ChArUco boards use OpenCV's pre-4.6 legacy marker layout.
+# Keep this true for the board that was diagnosed as "swapped 10x7 legacy".
+INTRINSIC_CHARUCO_LEGACY_PATTERN = _parse_bool(
+    os.getenv("INTRINSIC_CHARUCO_LEGACY_PATTERN"),
+    True,
+)
 
 
 # =============================================================================
@@ -298,6 +305,7 @@ HAND_EYE_BOARD_CORNERS = INTRINSIC_BOARD_CORNERS
 HAND_EYE_SQUARE_SIZE = INTRINSIC_SQUARE_SIZE
 HAND_EYE_MARKER_SIZE = INTRINSIC_MARKER_SIZE
 HAND_EYE_ARUCO_DICT_NAME = INTRINSIC_ARUCO_DICT_NAME
+HAND_EYE_CHARUCO_LEGACY_PATTERN = INTRINSIC_CHARUCO_LEGACY_PATTERN
 
 # Number of robot poses to capture for robot-based extrinsic calibration.
 # Used by D405 hand-eye and D435 mounted-board calibration.
@@ -318,6 +326,7 @@ BIRD_EYE_BOARD_CORNERS = INTRINSIC_BOARD_CORNERS
 BIRD_EYE_SQUARE_SIZE = INTRINSIC_SQUARE_SIZE
 BIRD_EYE_MARKER_SIZE = INTRINSIC_MARKER_SIZE
 BIRD_EYE_ARUCO_DICT_NAME = INTRINSIC_ARUCO_DICT_NAME
+BIRD_EYE_CHARUCO_LEGACY_PATTERN = INTRINSIC_CHARUCO_LEGACY_PATTERN
 
 # Rigid mount from ChArUco board frame to robot end-effector frame.
 #

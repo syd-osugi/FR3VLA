@@ -30,6 +30,11 @@ class FakeBoard:
         return self._corners
 
 
+class FakeBoardConfig(dict):
+    def setLegacyPattern(self, value):
+        self["legacy_pattern"] = bool(value)
+
+
 class FakeAruco:
     DICT_4X4_50 = 10
     DICT_4X4_100 = 11
@@ -50,23 +55,27 @@ class FakeAruco:
         return {"dict_id": dict_id}
 
     def CharucoBoard_create(self, squares_x, squares_y, square_size, marker_size, aruco_dict):
-        return {
-            "api": "old",
-            "squares_x": squares_x,
-            "squares_y": squares_y,
-            "square_size": square_size,
-            "marker_size": marker_size,
-            "dict": aruco_dict,
-        }
+        return FakeBoardConfig(
+            {
+                "api": "old",
+                "squares_x": squares_x,
+                "squares_y": squares_y,
+                "square_size": square_size,
+                "marker_size": marker_size,
+                "dict": aruco_dict,
+            }
+        )
 
     def CharucoBoard(self, size, square_size, marker_size, aruco_dict):
-        return {
-            "api": "new",
-            "size": size,
-            "square_size": square_size,
-            "marker_size": marker_size,
-            "dict": aruco_dict,
-        }
+        return FakeBoardConfig(
+            {
+                "api": "new",
+                "size": size,
+                "square_size": square_size,
+                "marker_size": marker_size,
+                "dict": aruco_dict,
+            }
+        )
 
     def detectMarkers(self, gray_image, aruco_dict):
         return self.detected_corners, self.ids, self.rejected
@@ -88,13 +97,15 @@ class FakeAruco:
 
 class FakeArucoNewOnly:
     def CharucoBoard(self, size, square_size, marker_size, aruco_dict):
-        return {
-            "api": "new",
-            "size": size,
-            "square_size": square_size,
-            "marker_size": marker_size,
-            "dict": aruco_dict,
-        }
+        return FakeBoardConfig(
+            {
+                "api": "new",
+                "size": size,
+                "square_size": square_size,
+                "marker_size": marker_size,
+                "dict": aruco_dict,
+            }
+        )
 
 
 class FakeCv2:
@@ -144,6 +155,16 @@ def test_board_creation_and_object_points():
     cv2_new_only = FakeCv2(FakeArucoNewOnly())
     board = charuco_utils.create_charuco_board(cv2_new_only, (4, 5), 0.035, 0.025, {"dict_id": 10})
     require(board["api"] == "new" and board["size"] == (5, 6), "new board API dimensions failed")
+
+    board = charuco_utils.create_charuco_board(
+        cv2,
+        (4, 5),
+        0.035,
+        0.025,
+        {"dict_id": 10},
+        legacy_pattern=True,
+    )
+    require(board["legacy_pattern"] is True, "legacy ChArUco pattern was not applied")
 
     object_points = charuco_utils.get_charuco_object_points(FakeBoard(), np.array([[2], [0]], dtype=np.int32))
     require_close(object_points, [[0.0, 1.0, 0.0], [0.0, 0.0, 0.0]], "object point lookup failed")

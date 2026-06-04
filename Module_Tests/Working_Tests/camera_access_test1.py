@@ -6,7 +6,7 @@
 
 from pathlib import Path
 
-from _working_test_utils import REPO_ROOT, add_working_to_path, unique_output_path
+from _working_test_utils import TEST_OUTPUTS_DIR, add_working_to_path, unique_output_path
 
 add_working_to_path()
 
@@ -17,7 +17,7 @@ from hardware.camera import RealSense
 
 
 SCRIPT_NAME = Path(__file__).stem
-OUTPUT_DIR = REPO_ROOT / "Test_Outputs" / SCRIPT_NAME
+OUTPUT_DIR = TEST_OUTPUTS_DIR / SCRIPT_NAME
 
 def main():
     print("--- Testing Camera Access ---")

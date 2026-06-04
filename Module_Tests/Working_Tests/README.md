@@ -28,4 +28,5 @@ Calibration hardware checks:
 python3 Module_Tests/Working_Tests/intrinsics_check_test12.py
 python3 Module_Tests/Working_Tests/d405_hand_eye_check_test13.py
 python3 Module_Tests/Working_Tests/d435_bird_eye_check_test23.py
+python3 Module_Tests/Working_Tests/charuco_detection_video_test24.py --camera D435
 ```

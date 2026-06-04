@@ -192,6 +192,7 @@ def main():
         cfg.HAND_EYE_SQUARE_SIZE,
         cfg.HAND_EYE_MARKER_SIZE,
         aruco_dict,
+        legacy_pattern=cfg.HAND_EYE_CHARUCO_LEGACY_PATTERN,
     )
     poses_required = cfg.HAND_EYE_POSES_REQUIRED
     print("      ChArUco detector ready")
@@ -210,6 +211,8 @@ def main():
     - Board inner corners: {cfg.HAND_EYE_BOARD_CORNERS}
     - Square size: {cfg.HAND_EYE_SQUARE_SIZE:.4f} m
     - Marker size: {cfg.HAND_EYE_MARKER_SIZE:.4f} m
+    - ArUco dictionary: {cfg.HAND_EYE_ARUCO_DICT_NAME}
+    - Legacy ChArUco pattern: {cfg.HAND_EYE_CHARUCO_LEGACY_PATTERN}
 
   INSTRUCTIONS:
     - Move the robot to varied positions and wrist orientations.

@@ -16,8 +16,10 @@ import numpy as np
 
 
 TEST_DIR = Path(__file__).resolve().parent
-REPO_ROOT = TEST_DIR.parents[1]
-WORKING_DIR = REPO_ROOT / "Working"
+REPO_ROOT = TEST_DIR.parent
+PROJECT_ROOT = REPO_ROOT.parent
+WORKING_DIR = PROJECT_ROOT / "Working"
+TEST_OUTPUTS_DIR = REPO_ROOT / "Test_Outputs"
 
 
 def add_working_to_path() -> None:
