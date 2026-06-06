@@ -18,7 +18,8 @@ Important limitation:
 """
 
 import json
-from numbers import Integral
+import math
+from numbers import Integral, Real
 
 import config as cfg
 from robot.trajectory import get_robot_trajectory_to_point, translate_points_fused
@@ -99,6 +100,27 @@ def _parse_xyz(value):
     if not isinstance(value, list) or len(value) != 3:
         raise ValueError("target_xyz must be [x, y, z] in robot base frame meters.")
     return [float(value[0]), float(value[1]), float(value[2])]
+
+
+def _parse_waypoints(value):
+    if not isinstance(value, list) or len(value) == 0:
+        raise ValueError(
+            "waypoints must be a non-empty list of [x, y, z] robot-base points."
+        )
+
+    waypoints = []
+    for index, waypoint in enumerate(value):
+        if not isinstance(waypoint, list) or len(waypoint) != 3:
+            raise ValueError(
+                f"waypoints[{index}] must be [x, y, z] in robot base frame meters."
+            )
+        if not all(isinstance(coord, Real) and not isinstance(coord, bool) for coord in waypoint):
+            raise ValueError(f"waypoints[{index}] contains a non-numeric coordinate.")
+        parsed = [float(waypoint[0]), float(waypoint[1]), float(waypoint[2])]
+        if not all(math.isfinite(coord) for coord in parsed):
+            raise ValueError(f"waypoints[{index}] contains a non-finite coordinate.")
+        waypoints.append(parsed)
+    return waypoints
 
 
 def _localize_points(camera_name, coords, frames, camera, robot_ee_pose):
@@ -308,7 +330,62 @@ def handle_plan_robot_trajectory(tool_args, robot_ee_pose=None):
     }), None
 
 
-def dispatch(tool_name, tool_args, d435_cam, d405_cam, robot_ee_pose=None):
+def handle_execute_robot_waypoints(tool_args, robot_interface=None):
+    """
+    Executes pre-planned robot-base EE-origin waypoints.
+
+    This is intentionally separate from plan_robot_trajectory. Planning can be
+    inspected safely; execution moves hardware and therefore must be requested as
+    a distinct tool call. FrankaRobotInterface still enforces workspace checks,
+    speed clamping, collision behavior, and its configured confirmation prompt.
+    """
+    if robot_interface is None:
+        return (
+            "Error: robot motion is not available because main.py did not provide "
+            "a robot interface.",
+            None,
+        )
+
+    try:
+        waypoints = _parse_waypoints(tool_args.get("waypoints"))
+        speed_mps = tool_args.get("speed_mps")
+        if speed_mps is not None:
+            if isinstance(speed_mps, bool):
+                raise ValueError("speed_mps must be numeric and positive")
+            speed_mps = float(speed_mps)
+            if not math.isfinite(speed_mps) or speed_mps <= 0.0:
+                raise ValueError("speed_mps must be numeric and positive")
+        result = robot_interface.move_to_waypoints(
+            waypoints,
+            speed_mps=speed_mps,
+            source="execute_robot_waypoints_tool",
+        )
+    except (TypeError, ValueError) as exc:
+        return f"Error: {exc}", None
+    except RuntimeError as exc:
+        return f"Error: robot motion was not executed: {exc}", None
+    except Exception as exc:
+        return f"Error: robot motion failed: {exc}", None
+
+    return _json({
+        "execution_status": result.get("status"),
+        "hardware_motion_enabled": result.get("hardware_motion_enabled", False),
+        "robot_ip": result.get("robot_ip"),
+        "waypoints": result.get("waypoints"),
+        "speed_mps": result.get("speed_mps"),
+        "motion_summary": result.get("motion_summary"),
+        "segments_executed": result.get("segments_executed"),
+        "distance_m": result.get("distance_m"),
+        "final_xyz": result.get("final_xyz"),
+        "warnings": result.get("warnings", []),
+        "next_step": (
+            "After motion, capture fresh synchronized images, localize again, "
+            "and re-plan before making another correction."
+        ),
+    }), None
+
+
+def dispatch(tool_name, tool_args, d435_cam, d405_cam, robot_ee_pose=None, robot_interface=None):
     """
     Main entry point called by the LLM interface.
 
@@ -330,6 +407,8 @@ def dispatch(tool_name, tool_args, d435_cam, d405_cam, robot_ee_pose=None):
         return handle_get_xyz_fused(tool_args, d435_cam, d405_cam, robot_ee_pose)
     if tool_name == "plan_robot_trajectory":
         return handle_plan_robot_trajectory(tool_args, robot_ee_pose=robot_ee_pose)
+    if tool_name == "execute_robot_waypoints":
+        return handle_execute_robot_waypoints(tool_args, robot_interface=robot_interface)
 
     available_tools = [
         "get_birds_eye_view",
@@ -338,5 +417,6 @@ def dispatch(tool_name, tool_args, d435_cam, d405_cam, robot_ee_pose=None):
         "get_xyz_d405",
         "get_xyz_fused",
         "plan_robot_trajectory",
+        "execute_robot_waypoints",
     ]
     return f"Error: Unknown tool '{tool_name}'. Available tools: {available_tools}", None

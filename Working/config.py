@@ -11,6 +11,9 @@ Override values using environment variables:
 import os
 
 
+WORKING_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
 def _parse_tuple(value, default):
     """
     Safely parse environment variables into tuples.
@@ -179,6 +182,21 @@ CAMERA_SYNC_RETRY_SLEEP_S = _parse_float(
     max_value=1.0,
 )
 
+# Live operator viewer for main.py. The viewer shows both camera streams and
+# overlays the latest LLM-selected localization pixels.
+CAMERA_VIEWER_ENABLED = _parse_bool(os.getenv("CAMERA_VIEWER_ENABLED"), True)
+CAMERA_VIEWER_WINDOW_NAME = os.getenv("CAMERA_VIEWER_WINDOW_NAME", "FR3VLA Camera Viewer")
+CAMERA_VIEWER_MAX_DISPLAY_WIDTH = _parse_int(
+    os.getenv("CAMERA_VIEWER_MAX_DISPLAY_WIDTH"),
+    1600,
+    min_value=320,
+)
+CAMERA_VIEWER_MAX_DISPLAY_HEIGHT = _parse_int(
+    os.getenv("CAMERA_VIEWER_MAX_DISPLAY_HEIGHT"),
+    900,
+    min_value=240,
+)
+
 # Warmup time for auto-exposure and laser settings to settle after a camera starts.
 CAMERA_WARMUP_SECONDS = _parse_float(
     os.getenv("CAMERA_WARMUP_SECONDS"),
@@ -241,7 +259,14 @@ DEBUG_IMAGE_DIR = os.getenv("DEBUG_IMAGE_DIR", "output_debug_images")
 # CALIBRATION FILE PATHS
 # =============================================================================
 # All calibration data is stored as JSON files in this directory.
-CALIBRATION_DIR = os.getenv("CALIBRATION_DIR", "calibration_data")
+#
+# Use an absolute default anchored to this config.py file so runtime scripts can
+# be launched from the repo root, the Working folder, or another shell cwd
+# without losing track of calibration files.
+CALIBRATION_DIR = os.getenv(
+    "CALIBRATION_DIR",
+    os.path.join(WORKING_DIR, "camera_calibration", "calibration_data"),
+)
 
 # Intrinsics: Lens distortion coefficients and focal length.
 # These are camera-specific and don't change unless you physically swap the lens.

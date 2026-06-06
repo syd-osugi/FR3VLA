@@ -16,6 +16,15 @@ from vision.base_classes import BaseLLM
 
 import vision.tools as tools
 
+
+FINAL_ANSWER_PROMPT = (
+    "The tool-call safety limit has been reached. Stop requesting tools now. "
+    "Use only the tool results already in the conversation and give the operator "
+    "a concise final answer. If the available evidence is incomplete, say exactly "
+    "what was learned and what failed instead of asking for another tool."
+)
+
+
 def _load_openai_client_class():
     """Lazy load the OpenAI client so the file can be imported without the package."""
     try:
@@ -84,10 +93,19 @@ class LLMinterface(BaseLLM):
                     4. If object is only visible in one camera, use get_xyz_fused with that camera's coords and null for the other
                     5. Only use get_xyz_d435 or get_xyz_d405 if you specifically want single-camera data
                     6. Use plan_robot_trajectory after localization when the user asks for a robot trajectory
+                    7. Use execute_robot_waypoints only after plan_robot_trajectory when the user explicitly wants robot motion
 
                     IMPORTANT: When an object is visible in BOTH cameras, ALWAYS use get_xyz_fused 
                     with coordinates from both cameras. This provides more accurate 3D positioning 
                     by combining depth data from two viewpoints.
+
+                    MOTION EXECUTION:
+                    - plan_robot_trajectory only plans; it never moves the robot.
+                    - execute_robot_waypoints moves the physical Franka robot using waypoints from
+                      plan_robot_trajectory.
+                    - Do not invent waypoints. Localize first, plan second, execute third.
+                    - After execute_robot_waypoints, capture fresh synchronized images, localize again,
+                      and re-plan before making another correction.
 
                     FRESHNESS / RE-PLANNING:
                     - The image and localization tools always capture a fresh synchronized D435/D405 pair.
@@ -95,6 +113,13 @@ class LLMinterface(BaseLLM):
                     - plan_robot_trajectory is not a continuous controller. It creates waypoints only from
                       the latest target_xyz you provide.
                     - Never claim robot motion was executed unless an execution tool reports success.
+                    - When you identify a target object, localize it with get_xyz_fused or a single-camera
+                      XYZ tool so the operator camera viewer can annotate the selected pixel and XYZ.
+                    - After a successful localization, trajectory plan, or execution result, produce a
+                      final text answer for the operator. Do not call another tool unless the user
+                      explicitly asks for another image, another localization, replanning, or execution.
+                    - If a tool returns an error or invalid point twice for the same target, stop and
+                      explain what failed instead of repeating the same tool call.
 
                     Coordinate format: [u, v] where top-left is [0,0]
                     """).strip(),
@@ -104,6 +129,7 @@ class LLMinterface(BaseLLM):
     def get_text(self):
         """Helper to get user input from the terminal."""
         self.text = input("Enter command: ")
+        return self.text
 
     def send_message_with_tools(
         self,
@@ -111,6 +137,8 @@ class LLMinterface(BaseLLM):
         d405_cam,
         robot_ee_pose=None,
         robot_pose_provider=None,
+        robot_interface=None,
+        tool_result_callback=None,
     ):
         """
         The core LLM loop. 
@@ -119,6 +147,9 @@ class LLMinterface(BaseLLM):
         d405_cam: RealSense D405 camera object
         robot_ee_pose: Current robot end-effector pose (4x4 matrix) - fallback pose
         robot_pose_provider: Optional callable that returns a fresh EE pose per tool call
+        robot_interface: Optional RobotInterface used by execute_robot_waypoints
+        tool_result_callback: Optional callable that receives each executed tool
+            result for UI/debug overlays.
         """
         # Add user's command to history
         self.messages.append({"role": "user", "content": self.text})
@@ -155,10 +186,7 @@ class LLMinterface(BaseLLM):
                         "tool_call_id": tool_call.id,
                         "content": "ERROR: maximum tool-call rounds reached.",
                     })
-                self.reply = (
-                    "Stopped because the model kept requesting tools without producing "
-                    "a final answer."
-                )
+                self.reply = self._force_final_answer_without_tools()
                 self.messages.append({"role": "assistant", "content": self.reply})
                 break
             
@@ -195,10 +223,22 @@ class LLMinterface(BaseLLM):
                         d435_cam,
                         d405_cam,
                         robot_ee_pose=current_robot_ee_pose,
+                        robot_interface=robot_interface,
                     )
                 except Exception as exc:
                     result_text = f"ERROR: tool execution failed: {exc}"
                     extra_image_msg = None
+
+                if tool_result_callback is not None:
+                    try:
+                        tool_result_callback(
+                            tool_call.function.name,
+                            args,
+                            result_text,
+                            self.text,
+                        )
+                    except Exception as exc:
+                        print(f"Warning: tool result callback failed: {exc}")
                 
                 # Feed the text result back to the LLM (e.g., "XYZ coords are: 0.5m...")
                 self.messages.append({
@@ -233,3 +273,49 @@ class LLMinterface(BaseLLM):
     def print_message(self):
         """Helper to print the final response cleanly."""
         print(self.reply or "")
+
+    def _force_final_answer_without_tools(self):
+        """
+        Ask for one last operator-facing answer with tools removed from the API call.
+
+        WHY THIS EXISTS:
+        Local vision models sometimes get into a loop like:
+            image -> localization -> image -> localization -> ...
+        even after the tool results already contain enough information to answer.
+        The normal loop must keep tools available so the model can use the cameras,
+        but once the safety limit trips, continuing with tools enabled would invite
+        the exact same loop again. This method appends a direct "stop using tools"
+        instruction, then makes a completion request WITHOUT the tools argument.
+
+        WHY OMIT TOOLS INSTEAD OF ONLY tool_choice="none":
+        This project talks to OpenAI-compatible local servers, not only the official
+        OpenAI API. Some local servers ignore or only partially implement
+        tool_choice="none". Omitting the tool schemas is the most portable way to
+        make the final request a plain text response.
+        """
+        final_request = {"role": "user", "content": FINAL_ANSWER_PROMPT}
+        self.messages.append(final_request)
+
+        try:
+            final_completion = self.openai_client.chat.completions.create(
+                model=self.model,
+                messages=self.messages,
+                temperature=cfg.LLM_TEMPERATURE,
+                max_tokens=cfg.LLM_MAX_OUTPUT_TOKENS,
+            )
+            final_msg = final_completion.choices[0].message
+            final_text = getattr(final_msg, "content", None)
+            if isinstance(final_msg, dict):
+                final_text = final_msg.get("content")
+            if final_text:
+                return final_text
+        except Exception as exc:
+            return (
+                "Stopped because the model kept requesting tools without producing "
+                f"a final answer, and the forced final summary failed: {exc}"
+            )
+
+        return (
+            "Stopped because the model kept requesting tools without producing "
+            "a final answer, and the forced final summary was empty."
+        )

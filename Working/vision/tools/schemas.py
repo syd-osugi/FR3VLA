@@ -293,4 +293,52 @@ tool_json_list = [
             },
         },
     },
+
+    # =========================================================================
+    # TOOL 7: ROBOT MOTION EXECUTION
+    # =========================================================================
+    # Purpose: Execute waypoints after the user/model has already localized and
+    # planned. This tool moves hardware; the Franka interface still asks for
+    # typed confirmation when FRANKA_REQUIRE_MOTION_CONFIRMATION is true.
+    {
+        "type": "function",
+        "function": {
+            "name": "execute_robot_waypoints",
+            "description": (
+                "MOVES THE PHYSICAL FRANKA ROBOT. Execute robot-base EE-origin "
+                "waypoints returned by plan_robot_trajectory. Use this only after "
+                "localizing the target and planning a trajectory. Do not invent "
+                "waypoints. After execution, capture fresh images and localize again "
+                "before making any follow-up movement."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "waypoints": {
+                        "type": "array",
+                        "description": (
+                            "Non-empty list of robot-base end-effector origin waypoints "
+                            "[x, y, z] in meters, normally copied from plan_robot_trajectory."
+                        ),
+                        "items": {
+                            "type": "array",
+                            "items": {"type": "number"},
+                            "minItems": 3,
+                            "maxItems": 3,
+                        },
+                        "minItems": 1,
+                    },
+                    "speed_mps": {
+                        "type": "number",
+                        "description": (
+                            "Optional Cartesian speed in meters/second. Omit for the "
+                            "configured conservative default."
+                        ),
+                        "exclusiveMinimum": 0,
+                    },
+                },
+                "required": ["waypoints"],
+            },
+        },
+    },
 ]
