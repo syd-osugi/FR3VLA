@@ -73,6 +73,78 @@ def test_plan_robot_trajectory_reports_parse_errors():
     require(image is None and "target_xyz must be" in text, "bad target should return parse error")
 
 
+class FakeRobotInterface:
+    def __init__(self):
+        self.calls = []
+
+    def move_to_waypoints(self, waypoints, **kwargs):
+        self.calls.append((waypoints, kwargs))
+        return {
+            "status": "executed",
+            "hardware_motion_enabled": True,
+            "robot_ip": "fake-robot",
+            "waypoints": waypoints,
+            "speed_mps": kwargs.get("speed_mps"),
+            "motion_summary": "fake_motion_complete",
+            "segments_executed": len(waypoints),
+            "distance_m": 0.123,
+            "final_xyz": waypoints[-1],
+        }
+
+
+def test_execute_robot_waypoints_requires_robot_interface():
+    text, image = dispatcher.dispatch(
+        "execute_robot_waypoints",
+        {"waypoints": [[0.1, 0.2, 0.3]]},
+        None,
+        None,
+    )
+    require(image is None, "execute tool should not return an image")
+    require("robot motion is not available" in text, "missing robot interface should be explicit")
+
+
+def test_execute_robot_waypoints_routes_to_robot_interface():
+    robot = FakeRobotInterface()
+    text, image = dispatcher.dispatch(
+        "execute_robot_waypoints",
+        {"waypoints": [[0.1, 0.2, 0.3], [0.1, 0.2, 0.2]], "speed_mps": 0.02},
+        None,
+        None,
+        robot_interface=robot,
+    )
+
+    require(image is None, "execute tool should not return an image")
+    require(len(robot.calls) == 1, "robot interface should be called once")
+    waypoints, kwargs = robot.calls[0]
+    require(waypoints == [[0.1, 0.2, 0.3], [0.1, 0.2, 0.2]], "waypoints were not forwarded")
+    require(kwargs["speed_mps"] == 0.02, "speed was not forwarded")
+    require(kwargs["source"] == "execute_robot_waypoints_tool", "source tag missing")
+
+    data = json.loads(text)
+    require(data["execution_status"] == "executed", "execution status missing")
+    require(data["final_xyz"] == [0.1, 0.2, 0.2], "final xyz missing")
+
+
+def test_execute_robot_waypoints_reports_parse_errors():
+    text, image = dispatcher.dispatch(
+        "execute_robot_waypoints",
+        {"waypoints": []},
+        None,
+        None,
+        robot_interface=FakeRobotInterface(),
+    )
+    require(image is None and "waypoints must be a non-empty list" in text, "empty waypoints should be rejected")
+
+    text, _ = dispatcher.dispatch(
+        "execute_robot_waypoints",
+        {"waypoints": [[0.1, 0.2, "bad"]]},
+        None,
+        None,
+        robot_interface=FakeRobotInterface(),
+    )
+    require("non-numeric coordinate" in text, "bad waypoint coordinate should be rejected")
+
+
 if __name__ == "__main__":
     raise SystemExit(
         run_tests(
@@ -80,6 +152,9 @@ if __name__ == "__main__":
                 ("dispatcher rejects bad tool calls without hardware", test_dispatcher_rejects_bad_tool_calls_without_hardware),
                 ("plan robot trajectory routes parsed arguments", test_plan_robot_trajectory_routes_parsed_arguments),
                 ("plan robot trajectory reports parse errors", test_plan_robot_trajectory_reports_parse_errors),
+                ("execute robot waypoints requires robot interface", test_execute_robot_waypoints_requires_robot_interface),
+                ("execute robot waypoints routes to robot interface", test_execute_robot_waypoints_routes_to_robot_interface),
+                ("execute robot waypoints reports parse errors", test_execute_robot_waypoints_reports_parse_errors),
             ]
         )
     )

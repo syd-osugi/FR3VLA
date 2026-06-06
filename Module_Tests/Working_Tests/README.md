@@ -30,3 +30,17 @@ python3 Module_Tests/Working_Tests/d405_hand_eye_check_test13.py
 python3 Module_Tests/Working_Tests/d435_bird_eye_check_test23.py
 python3 Module_Tests/Working_Tests/charuco_detection_video_test24.py --camera D435
 ```
+
+LLM/server integration checks:
+
+```bash
+python3 Module_Tests/Working_Tests/llm_image_capability_test29.py
+```
+
+This image-capability test does not need cameras. It sends synthetic red/green
+square images to the configured `LLM_API_URL` and reports whether the local
+multimodal model can see one image and two images in a single request. It uses
+JPEG by default when Pillow is available, matching the runtime camera path, and
+falls back to PNG otherwise. Each run saves a timestamped folder under
+`Module_Tests/Test_Outputs/llm_image_capability` with `inputs/`, `requests/`,
+and `outputs/` subfolders.

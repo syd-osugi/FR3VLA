@@ -22,6 +22,7 @@ class FakeBoard:
                 [0.0, 1.0, 0.0],
                 [1.0, 1.0, 0.0],
                 [2.0, 1.0, 0.0],
+                [2.0, 2.0, 0.0],
             ],
             dtype=np.float32,
         )
@@ -84,8 +85,18 @@ class FakeAruco:
         return corners, ids, rejected, "extra-value"
 
     def interpolateCornersCharuco(self, corners, ids, gray_image, board, *args):
-        charuco_ids = np.array([[0], [1], [2], [3]], dtype=np.int32)
-        charuco_corners = np.array([[[10.0, 10.0]], [[20.0, 10.0]], [[10.0, 20.0]], [[20.0, 20.0]]], dtype=np.float32)
+        charuco_ids = np.array([[0], [1], [2], [3], [4], [5]], dtype=np.int32)
+        charuco_corners = np.array(
+            [
+                [[10.0, 10.0]],
+                [[20.0, 10.0]],
+                [[10.0, 20.0]],
+                [[20.0, 20.0]],
+                [[30.0, 20.0]],
+                [[30.0, 30.0]],
+            ],
+            dtype=np.float32,
+        )
         return len(charuco_ids), charuco_corners, charuco_ids
 
     def drawDetectedMarkers(self, image, marker_corners, marker_ids):
@@ -210,7 +221,7 @@ def test_detection_short_circuit_and_success_path():
         detector_params=object(),
     )
     require(corner_result["success"] is True, f"expected successful fake corner detection, got {corner_result}")
-    require(corner_result["marker_count"] == 4 and corner_result["charuco_count"] == 4, "successful detection counts failed")
+    require(corner_result["marker_count"] == 4 and corner_result["charuco_count"] == 6, "successful detection counts failed")
 
     result = charuco_utils.detect_charuco_board_pose(
         cv2,
