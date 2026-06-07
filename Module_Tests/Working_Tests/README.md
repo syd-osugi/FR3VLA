@@ -44,3 +44,14 @@ JPEG by default when Pillow is available, matching the runtime camera path, and
 falls back to PNG otherwise. Each run saves a timestamped folder under
 `Module_Tests/Test_Outputs/llm_image_capability` with `inputs/`, `requests/`,
 and `outputs/` subfolders.
+Single-shot LLM pixel annotation (live cameras):
+
+`ash
+python3 Module_Tests/Working_Tests/llm_pixel_annotation_test30.py --prompt "describe the red block"
+Single-shot LLM pixel annotation (live cameras):
+
+`ash
+python3 Module_Tests/Working_Tests/llm_pixel_annotation_test30.py --prompt "describe the red block"
+`
+
+This script mirrors the interactive no-robot debug loop for one command. It captures synchronized D435/D405 frames, lets the LLM pick pixel coordinates, and stores the annotated side-by-side visualization, sanitized conversation, and run summary under Module_Tests/Test_Outputs/llm_pixel_annotation_test/<timestamp>/. Use --ee-pose-source, --ee-pose-file, and --pose-index to override the static D405 pose when validating hand-eye math.
