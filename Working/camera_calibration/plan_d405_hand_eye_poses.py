@@ -99,6 +99,7 @@ if WORKING_DIR not in sys.path:
     sys.path.insert(0, WORKING_DIR)
 
 import config as cfg
+from robot.franka_setup import LOAD_PROFILE_D405_CALIBRATION, apply_franka_control_config
 from camera_calibration.charuco_utils import (
     create_charuco_board,
     detect_charuco_board_pose,
@@ -334,20 +335,7 @@ def connect_robot():
     else:
         robot = pylibfranka.Robot(cfg.FRANKA_IP, realtime_config)
 
-    robot.set_collision_behavior(
-        [cfg.FRANKA_COLLISION_TORQUE_NM] * 7,
-        [cfg.FRANKA_COLLISION_TORQUE_NM] * 7,
-        [cfg.FRANKA_COLLISION_FORCE_N] * 6,
-        [cfg.FRANKA_COLLISION_FORCE_N] * 6,
-    )
-
-    set_joint_impedance = getattr(robot, "set_joint_impedance", None)
-    if callable(set_joint_impedance):
-        set_joint_impedance([3000.0, 3000.0, 3000.0, 2500.0, 2500.0, 2000.0, 2000.0])
-
-    set_cartesian_impedance = getattr(robot, "set_cartesian_impedance", None)
-    if callable(set_cartesian_impedance):
-        set_cartesian_impedance([3000.0, 3000.0, 3000.0, 300.0, 300.0, 300.0])
+    apply_franka_control_config(robot, load_profile=LOAD_PROFILE_D405_CALIBRATION)
 
     return robot
 

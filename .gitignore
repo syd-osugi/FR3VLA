@@ -9,6 +9,7 @@ Module_Tests/Segmentation/YOLO26/yoloe-26l-seg.pt
 Module_Tests/Segmentation/YOLO26/NeedToCheck_RealSenseD405_Test5.py
 Module_Tests/Segmentation/YOLO26/NeedTo_Check_RealSenseD405_DepthColor_Seg_Test6.py
 Module_Tests/Segmentation/YOLO26/Yolo_Output
+Module_Tests/output_debug_images
 
 Agentic-Robot
 

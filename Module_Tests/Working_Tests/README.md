@@ -29,12 +29,19 @@ python3 Module_Tests/Working_Tests/intrinsics_check_test12.py
 python3 Module_Tests/Working_Tests/d405_hand_eye_check_test13.py
 python3 Module_Tests/Working_Tests/d435_bird_eye_check_test23.py
 python3 Module_Tests/Working_Tests/charuco_detection_video_test24.py --camera D435
+python3 Module_Tests/Working_Tests/extrinsics_physical_validation_test31.py --mode both
 ```
+
+`extrinsics_physical_validation_test31.py` is the stronger physical check. It
+uses fresh ChArUco captures and Franka poses to verify that the saved extrinsic
+matrices agree with the real camera/robot geometry, not just that the JSON
+contains valid 4x4 transforms.
 
 LLM/server integration checks:
 
 ```bash
 python3 Module_Tests/Working_Tests/llm_image_capability_test29.py
+python3 Module_Tests/Working_Tests/llm_pixel_coordinate_capability_test32.py
 ```
 
 This image-capability test does not need cameras. It sends synthetic red/green
@@ -44,14 +51,15 @@ JPEG by default when Pillow is available, matching the runtime camera path, and
 falls back to PNG otherwise. Each run saves a timestamped folder under
 `Module_Tests/Test_Outputs/llm_image_capability` with `inputs/`, `requests/`,
 and `outputs/` subfolders.
+
+`llm_pixel_coordinate_capability_test32.py` also does not need cameras. It sends
+synthetic images with known target centers and requires the LLM to call a pixel
+coordinate tool with coordinates close to ground truth.
+
 Single-shot LLM pixel annotation (live cameras):
 
-`ash
+```bash
 python3 Module_Tests/Working_Tests/llm_pixel_annotation_test30.py --prompt "describe the red block"
-Single-shot LLM pixel annotation (live cameras):
-
-`ash
-python3 Module_Tests/Working_Tests/llm_pixel_annotation_test30.py --prompt "describe the red block"
-`
+```
 
 This script mirrors the interactive no-robot debug loop for one command. It captures synchronized D435/D405 frames, lets the LLM pick pixel coordinates, and stores the annotated side-by-side visualization, sanitized conversation, and run summary under Module_Tests/Test_Outputs/llm_pixel_annotation_test/<timestamp>/. Use --ee-pose-source, --ee-pose-file, and --pose-index to override the static D405 pose when validating hand-eye math.

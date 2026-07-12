@@ -249,6 +249,59 @@ LLM_IMAGE_JPEG_QUALITY = _parse_int(
 
 
 # =============================================================================
+# DINOv2 SEGMENTATION / GROUNDING SETTINGS
+# =============================================================================
+# DINOv2 itself is a visual feature backbone. For requested-object segmentation,
+# configure a DINOv2-family semantic segmentation checkpoint with an id2label map.
+# A bare model such as "facebook/dinov2-base" will not be enough by itself.
+DINOV2_MODEL_NAME = os.getenv(
+    "DINOV2_MODEL_NAME",
+    os.getenv("DINO2V_MODEL_NAME", "facebook/dinov2-base"),
+)
+
+# "auto" uses CUDA when torch reports it is available, otherwise CPU.
+DINOV2_DEVICE = os.getenv("DINOV2_DEVICE", os.getenv("DINO2V_DEVICE", "auto"))
+
+# Per-pixel class confidence threshold for turning semantic logits into a mask.
+DINOV2_SCORE_THRESHOLD = _parse_float(
+    os.getenv("DINOV2_SCORE_THRESHOLD", os.getenv("DINO2V_SCORE_THRESHOLD")),
+    0.35,
+    min_value=0.0,
+    max_value=1.0,
+)
+
+# Drop tiny connected components from the returned detections.
+DINOV2_MIN_AREA_PX = _parse_int(
+    os.getenv("DINOV2_MIN_AREA_PX", os.getenv("DINO2V_MIN_AREA_PX")),
+    80,
+    min_value=1,
+)
+
+# Keep only the top detections after sorting by confidence and area.
+DINOV2_MAX_DETECTIONS = _parse_int(
+    os.getenv("DINOV2_MAX_DETECTIONS", os.getenv("DINO2V_MAX_DETECTIONS")),
+    5,
+    min_value=1,
+    max_value=100,
+)
+
+# Optional JSON mapping for matching operator wording to checkpoint labels:
+#   export DINOV2_LABEL_ALIASES_JSON='{"mug":["cup","coffee cup"],"block":["cube"]}'
+DINOV2_LABEL_ALIASES_JSON = os.getenv(
+    "DINOV2_LABEL_ALIASES_JSON",
+    os.getenv("DINO2V_LABEL_ALIASES_JSON", ""),
+)
+
+# Backward-compatible aliases for the earlier DINO2V spelling.
+DINO2V_MODEL_NAME = DINOV2_MODEL_NAME
+DINO2V_DEVICE = DINOV2_DEVICE
+DINO2V_SCORE_THRESHOLD = DINOV2_SCORE_THRESHOLD
+DINO2V_MIN_AREA_PX = DINOV2_MIN_AREA_PX
+DINO2V_MAX_DETECTIONS = DINOV2_MAX_DETECTIONS
+DINO2V_LABEL_ALIASES_JSON = DINOV2_LABEL_ALIASES_JSON
+
+
+# =============================================================================
 # DEBUGGING / OUTPUT SETTINGS
 # =============================================================================
 # Directory for debug images (e.g., "last_ai_aim.jpg" showing where the LLM aimed).
@@ -415,6 +468,90 @@ GRIPPER_TCP_IN_EE_RPY_DEG = _parse_float_tuple(
     os.getenv("GRIPPER_TCP_IN_EE_RPY_DEG"),
     (0.0, 0.0, 0.0),
     expected_len=3,
+)
+
+
+# =============================================================================
+# FRANKA LOAD / PAYLOAD MODEL
+# =============================================================================
+# Runtime values describe the physical gripper/tool payload attached during
+# normal robot motion. They are used by libfranka/pylibfranka for gravity
+# compensation, force estimates, and collision behavior. They do not change the
+# geometric TCP target above.
+#
+# Leave FRANKA_LOAD_MASS_KG at 0.0 to skip setting a custom payload. Once the
+# gripper mass properties are known, set:
+#
+#   export FRANKA_LOAD_MASS_KG="0.85"
+#   export FRANKA_LOAD_CENTER_OF_MASS_IN_FLANGE_M="0.0,0.0,0.08"
+#   export FRANKA_LOAD_INERTIA_KGM2="0.001,0,0,0,0.001,0,0,0,0.001"
+#
+# Center of mass is expressed in the Franka flange/load frame expected by
+# pylibfranka's set_load API. Inertia is a 3x3 matrix flattened row-major and
+# expressed about the load center of mass.
+FRANKA_LOAD_MASS_KG = _parse_float(
+    os.getenv("FRANKA_LOAD_MASS_KG"),
+    0.0,
+    min_value=0.0,
+)
+FRANKA_LOAD_CENTER_OF_MASS_IN_FLANGE_M = _parse_float_tuple(
+    os.getenv("FRANKA_LOAD_CENTER_OF_MASS_IN_FLANGE_M"),
+    (0.0, 0.0, 0.0),
+    expected_len=3,
+)
+FRANKA_LOAD_INERTIA_KGM2 = _parse_float_tuple(
+    os.getenv("FRANKA_LOAD_INERTIA_KGM2"),
+    (
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+    ),
+    expected_len=9,
+)
+
+# D405 hand-eye calibration can use a different wrist/end-effector setup than
+# runtime motion. Configure this for the physical payload mounted while running
+# plan_d405_hand_eye_poses.py and run_extrinsics_d405_hand_eye.py.
+D405_CALIBRATION_LOAD_MASS_KG = _parse_float(
+    os.getenv("D405_CALIBRATION_LOAD_MASS_KG"),
+    0.0,
+    min_value=0.0,
+)
+D405_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M = _parse_float_tuple(
+    os.getenv("D405_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M"),
+    (0.0, 0.0, 0.0),
+    expected_len=3,
+)
+D405_CALIBRATION_LOAD_INERTIA_KGM2 = _parse_float_tuple(
+    os.getenv("D405_CALIBRATION_LOAD_INERTIA_KGM2"),
+    (
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+    ),
+    expected_len=9,
+)
+
+# D435 bird's-eye calibration mounts the ChArUco board/end-effector fixture and
+# should use its own payload model instead of the D405 or runtime gripper values.
+D435_CALIBRATION_LOAD_MASS_KG = _parse_float(
+    os.getenv("D435_CALIBRATION_LOAD_MASS_KG"),
+    0.0,
+    min_value=0.0,
+)
+D435_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M = _parse_float_tuple(
+    os.getenv("D435_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M"),
+    (0.0, 0.0, 0.0),
+    expected_len=3,
+)
+D435_CALIBRATION_LOAD_INERTIA_KGM2 = _parse_float_tuple(
+    os.getenv("D435_CALIBRATION_LOAD_INERTIA_KGM2"),
+    (
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+        0.0, 0.0, 0.0,
+    ),
+    expected_len=9,
 )
 
 

@@ -41,6 +41,13 @@ def test_environment_overrides_reload():
             "LLM_TEMPERATURE": "bad",
             "POLICY_REQUIRE_ROBOT_STATE": "yes",
             "GRIPPER_TCP_IN_EE_TRANSLATION_M": "0.1,-0.2,0.3",
+            "FRANKA_LOAD_MASS_KG": "0.5",
+            "D405_CALIBRATION_LOAD_MASS_KG": "0.6",
+            "D435_CALIBRATION_LOAD_MASS_KG": "0.7",
+            "D405_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M": "0.01,0.02,0.03",
+            "D435_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M": "0.04,0.05,0.06",
+            "DINOV2_SCORE_THRESHOLD": "0.8",
+            "DINOV2_MIN_AREA_PX": "42",
         }
     ):
         fresh = importlib.reload(cfg)
@@ -51,6 +58,20 @@ def test_environment_overrides_reload():
         require(
             fresh.GRIPPER_TCP_IN_EE_TRANSLATION_M == (0.1, -0.2, 0.3),
             "gripper TCP env override failed",
+        )
+        require(fresh.DINOV2_SCORE_THRESHOLD == 0.8, "DINOv2 threshold env override failed")
+        require(fresh.DINOV2_MIN_AREA_PX == 42, "DINOv2 min-area env override failed")
+        require(fresh.DINO2V_SCORE_THRESHOLD == 0.8, "DINO2V alias threshold failed")
+        require(fresh.FRANKA_LOAD_MASS_KG == 0.5, "runtime payload mass env override failed")
+        require(fresh.D405_CALIBRATION_LOAD_MASS_KG == 0.6, "D405 payload mass env override failed")
+        require(fresh.D435_CALIBRATION_LOAD_MASS_KG == 0.7, "D435 payload mass env override failed")
+        require(
+            fresh.D405_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M == (0.01, 0.02, 0.03),
+            "D405 payload center of mass env override failed",
+        )
+        require(
+            fresh.D435_CALIBRATION_LOAD_CENTER_OF_MASS_IN_FLANGE_M == (0.04, 0.05, 0.06),
+            "D435 payload center of mass env override failed",
         )
 
     importlib.reload(cfg)
@@ -66,6 +87,7 @@ def test_low_level_imports_do_not_touch_hardware():
         "camera_calibration.bird_eye_math",
         "hardware.camera",
         "robot.trajectory",
+        "robot.franka_setup",
         "robot.safety",
         "robot.robot_interface",
         "policy.actions",
@@ -77,6 +99,7 @@ def test_low_level_imports_do_not_touch_hardware():
         "vision.tools.dispatcher",
         "vision.tools.localization",
         "vision.tools.schemas",
+        "vision.grounding_interface",
         "vision.llm_interface",
     ]
     for module_name in module_names:

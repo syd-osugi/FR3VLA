@@ -81,6 +81,7 @@ if WORKING_DIR not in sys.path:
 import numpy as np
 
 import config as cfg
+from robot.franka_setup import LOAD_PROFILE_D435_CALIBRATION, apply_franka_control_config
 from camera_calibration.bird_eye_math import (
     average_transforms,
     camera_to_robot_from_pose,
@@ -124,12 +125,7 @@ def connect_robot():
         raise RuntimeError("pylibfranka is required to read robot poses.") from exc
 
     robot = Robot(cfg.FRANKA_IP)
-    robot.set_collision_behavior(
-        [cfg.FRANKA_COLLISION_TORQUE_NM] * 7,
-        [cfg.FRANKA_COLLISION_TORQUE_NM] * 7,
-        [cfg.FRANKA_COLLISION_FORCE_N] * 6,
-        [cfg.FRANKA_COLLISION_FORCE_N] * 6,
-    )
+    apply_franka_control_config(robot, load_profile=LOAD_PROFILE_D435_CALIBRATION)
     return robot
 
 

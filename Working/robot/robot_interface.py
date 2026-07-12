@@ -29,6 +29,7 @@ from policy.actions import (
     ACTION_WAYPOINT,
     PolicyAction,
 )
+from robot.franka_setup import apply_franka_control_config
 from robot.trajectory import get_robot_trajectory_to_point
 
 
@@ -225,6 +226,7 @@ class FrankaRobotInterface(RobotInterface):
         self.robot_ip = robot_ip or cfg.FRANKA_IP
         self.robot: Optional[Any] = None
         self._franka: Optional[Any] = None
+        self.control_config: Optional[Dict[str, Any]] = None
         self.require_motion_confirmation = (
             bool(require_motion_confirmation)
             if require_motion_confirmation is not None
@@ -237,6 +239,7 @@ class FrankaRobotInterface(RobotInterface):
                 "status": "already_connected",
                 "robot_ip": self.robot_ip,
                 "hardware_motion_enabled": True,
+                "franka_control_config": self.control_config,
             }
 
         self._franka = _load_pylibfranka()
@@ -252,6 +255,7 @@ class FrankaRobotInterface(RobotInterface):
             "robot_ip": self.robot_ip,
             "hardware_motion_enabled": True,
             "require_motion_confirmation": self.require_motion_confirmation,
+            "franka_control_config": self.control_config,
         }
 
     def close(self) -> Dict[str, Any]:
@@ -259,6 +263,7 @@ class FrankaRobotInterface(RobotInterface):
         if callable(close):
             close()
         self.robot = None
+        self.control_config = None
         return {"status": "closed", "robot_ip": self.robot_ip}
 
     def read_state(self) -> RobotState:
@@ -411,23 +416,7 @@ class FrankaRobotInterface(RobotInterface):
 
     def _configure_default_behavior(self) -> None:
         robot = self._require_robot()
-        torque = float(cfg.FRANKA_COLLISION_TORQUE_NM)
-        force = float(cfg.FRANKA_COLLISION_FORCE_N)
-
-        robot.set_collision_behavior(
-            [torque] * 7,
-            [torque] * 7,
-            [force] * 6,
-            [force] * 6,
-        )
-
-        set_joint_impedance = getattr(robot, "set_joint_impedance", None)
-        if callable(set_joint_impedance):
-            set_joint_impedance([3000.0, 3000.0, 3000.0, 2500.0, 2500.0, 2000.0, 2000.0])
-
-        set_cartesian_impedance = getattr(robot, "set_cartesian_impedance", None)
-        if callable(set_cartesian_impedance):
-            set_cartesian_impedance([3000.0, 3000.0, 3000.0, 300.0, 300.0, 300.0])
+        self.control_config = apply_franka_control_config(robot)
 
     def _convert_franka_state(self, state: Any) -> RobotState:
         wrench = getattr(state, "O_F_ext_hat_K", None)

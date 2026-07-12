@@ -71,6 +71,7 @@ class FakeRobot:
         self.collision_behavior = None
         self.joint_impedance = None
         self.cartesian_impedance = None
+        self.load = None
         self.stopped = False
         self.closed = False
         FakeRobot.instances.append(self)
@@ -83,6 +84,9 @@ class FakeRobot:
 
     def set_cartesian_impedance(self, values):
         self.cartesian_impedance = list(values)
+
+    def set_load(self, mass_kg, center_of_mass_m, inertia_kgm2):
+        self.load = (float(mass_kg), list(center_of_mass_m), list(inertia_kgm2))
 
     def read_once(self):
         return FakeState(self.pose)
@@ -113,6 +117,9 @@ def franka_test_context():
         patched_attr(robot_interface.cfg, "FRANKA_REQUIRE_MOTION_CONFIRMATION", False),
         patched_attr(robot_interface.cfg, "FRANKA_COLLISION_TORQUE_NM", 11.0),
         patched_attr(robot_interface.cfg, "FRANKA_COLLISION_FORCE_N", 12.0),
+        patched_attr(robot_interface.cfg, "FRANKA_LOAD_MASS_KG", 0.75),
+        patched_attr(robot_interface.cfg, "FRANKA_LOAD_CENTER_OF_MASS_IN_FLANGE_M", (0.01, 0.02, 0.03)),
+        patched_attr(robot_interface.cfg, "FRANKA_LOAD_INERTIA_KGM2", (0.1, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.3)),
         patched_attr(robot_interface.cfg, "ROBOT_WORKSPACE_MIN_M", (-1.0, -1.0, -1.0)),
         patched_attr(robot_interface.cfg, "ROBOT_WORKSPACE_MAX_M", (1.0, 1.0, 1.0)),
         patched_attr(robot_interface.cfg, "ROBOT_MAX_CARTESIAN_SPEED_MPS", 0.5),
@@ -152,6 +159,10 @@ def test_connect_and_read_state():
         require(fake_robot.collision_behavior[2] == [12.0] * 6, "collision force threshold not configured")
         require(fake_robot.joint_impedance is not None, "joint impedance should be configured when available")
         require(fake_robot.cartesian_impedance is not None, "cartesian impedance should be configured when available")
+        require(fake_robot.load[0] == 0.75, "payload mass was not configured")
+        require(fake_robot.load[1] == [0.01, 0.02, 0.03], "payload center of mass was not configured")
+        require(fake_robot.load[2] == [0.1, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0, 0.3], "payload inertia was not configured")
+        require(connection["franka_control_config"]["load"]["applied"] is True, "connection result should report applied payload")
 
         state = interface.read_state()
         require_close(np.array(state.ee_pose)[:3, 3], [0.0, 0.0, 0.0], "state pose translation wrong")
