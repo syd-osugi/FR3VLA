@@ -6,17 +6,7 @@
 Module_Tests/Segmentation/YOLO26/mobileclip2_b.ts
 Module_Tests/Segmentation/YOLO26/yolo26n-seg.pt
 Module_Tests/Segmentation/YOLO26/yoloe-26l-seg.pt
-Module_Tests/Segmentation/YOLO26/NeedToCheck_RealSenseD405_Test5.py
-Module_Tests/Segmentation/YOLO26/NeedTo_Check_RealSenseD405_DepthColor_Seg_Test6.py
 Module_Tests/Segmentation/YOLO26/Yolo_Output
-Module_Tests/output_debug_images
 
-Agentic-Robot
-
-Working/LLM_Script/models
-Working/camera_calibration/calibration_data
-
-NotWorking_Hand_Pressure_Test3.py
-Realhand/Tests_Realhand/PressureState_JointState_Time_Plot_Test3_Output
-
-Module_Tests/Test_Outputs
+Old_Module_Tests
+Old_Working
