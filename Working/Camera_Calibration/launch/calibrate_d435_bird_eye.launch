@@ -1,0 +1,61 @@
+<!--
+  Launch file for D435 eye-to-hand (bird's-eye) camera calibration.
+
+  This launches the RealSense D435 camera driver and then runs the
+  D435 bird's-eye extrinsic calibration script.
+
+  Two D435 cameras are mounted symmetrically at 45 degrees from the
+  workspace center, angled downward. Calibrate them one at a time.
+
+  Usage:
+    # Calibrate the left D435:
+    roslaunch camera_calibration calibrate_d435_bird_eye.launch camera:=left
+
+    # Calibrate the right D435:
+    roslaunch camera_calibration calibrate_d435_bird_eye.launch camera:=right
+
+  After the camera starts, the calibration script will open a preview
+  window. Follow the on-screen instructions to capture poses.
+-->
+<launch>
+  <!-- Camera selection: 'left' or 'right' -->
+  <arg name="camera"        default="left" />
+
+  <!-- Per-camera parameters -->
+  <arg name="camera_name"   default="$(eval 'd435_' + camera)" />
+  <arg name="serial_number" default="$(eval camera == 'left' and env('D435_LEFT_SERIAL') or env('D435_RIGHT_SERIAL'))" />
+  <arg name="rgb_image_width"  default="640" />
+  <arg name="rgb_image_height" default="480" />
+  <arg name="depth_fps"        default="30" />
+  <arg name="color_fps"        default="30" />
+  <arg name="enable_depth"     default="true" />
+  <arg name="enable_color"     default="true" />
+  <arg name="enable_pointcloud" default="false" />
+
+  <!-- TF frame names for this camera -->
+  <arg name="frame_id"        default="$(eval 'camera_' + camera + '_optical_frame')" />
+  <arg name="depth_frame_id"  default="$(eval 'camera_' + camera + '_depth_frame')" />
+  <arg name="color_frame_id"  default="$(eval 'camera_' + camera + '_color_frame')" />
+
+  <!-- Launch the RealSense camera driver -->
+  <node pkg="realsense2_camera" type="realsense2_camera_node" name="$(arg camera_name)" output="screen">
+    <param name="serial_no"              value="$(arg serial_number)" />
+    <param name="rgb_camera/profile"     value="$(arg rgb_image_width) $(arg rgb_image_height) $(arg color_fps)" />
+    <param name="depth_module/profile"   value="$(arg rgb_image_width) $(arg rgb_image_height) $(arg depth_fps)" />
+    <param name="enable_depth"           value="$(arg enable_depth)" />
+    <param name="enable_color"           value="$(arg enable_color)" />
+    <param name="enable_pointcloud"      value="$(arg enable_pointcloud)" />
+    <param name="unite_imu_method"       value="none" />
+    <param name="publish_tf"             value="true" />
+    <param name="tf_publish_rate"        value="10.0" />
+    <param name="frame_id"               value="$(arg frame_id)" />
+    <param name="depth_frame_id"         value="$(arg depth_frame_id)" />
+    <param name="color_frame_id"         value="$(arg color_frame_id)" />
+  </node>
+
+  <!-- Run the D435 bird's-eye calibration script -->
+  <node pkg="camera_calibration" type="calibrate_d435_bird_eye.py" name="calibrate_d435_$(arg camera)" output="screen" required="true">
+    <arg name="camera" value="$(arg camera)" />
+    <env name="PYTHONUNBUFFERED" value="1" />
+  </node>
+</launch>

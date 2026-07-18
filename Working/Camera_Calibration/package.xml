@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+  package.xml for the camera_calibration ROS package.
+
+  Provides tools for calibrating:
+    - D405 eye-in-hand camera (on robot end-effector)
+    - D435 eye-to-hand cameras (two fixed cameras, left and right)
+
+  Depends on:
+    - realsense2_camera: RealSense ROS driver for D435/D405
+    - tf2_ros: for coordinate frame transforms
+    - geometry_msgs: for pose messages
+-->
+<package format="3">
+  <name>camera_calibration</name>
+  <version>0.1.0</version>
+  <description>
+    Extrinsic camera calibration tools for the Franka FR3VLA vision system.
+    Supports D405 eye-in-hand and dual D435 eye-to-hand calibration
+    using ChArUco board detection and OpenCV hand-eye solving.
+  </description>
+
+  <maintainer email="fr3vla@sjsu.edu">FR3VLA Team</maintainer>
+  <license>MIT</license>
+
+  <url type="repository">https://github.com/SJSU/FR3VLA</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- Runtime dependencies -->
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>realsense2_camera</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-opencv</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <exec_depend>python3-pylibfranka</exec_depend>
+  <exec_depend>python3-pyrealsense2</exec_depend>
+
+  <!-- Python scripts -->
+  <exec_depend>calibrate_d405_hand_eye.py</exec_depend>
+  <exec_depend>calibrate_d435_bird_eye.py</exec_depend>
+
+  <export>
+  </export>
+</package>

@@ -1,0 +1,42 @@
+<!--
+  Launch file for D405 eye-in-hand camera calibration.
+
+  This launches the RealSense D405 camera driver and then runs the
+  D405 hand-eye extrinsic calibration script.
+
+  Usage:
+    roslaunch camera_calibration calibrate_d405_hand_eye.launch
+
+  After the camera starts, the calibration script will open a preview
+  window. Follow the on-screen instructions to capture poses.
+-->
+<launch>
+  <!-- RealSense D405 camera parameters -->
+  <arg name="camera_name"    default="d405" />
+  <arg name="serial_number"  default="$(env D405_SERIAL)" />
+  <arg name="rgb_image_width"  default="1280" />
+  <arg name="rgb_image_height" default="720" />
+  <arg name="depth_fps"        default="30" />
+  <arg name="color_fps"        default="30" />
+  <arg name="enable_depth"     default="true" />
+  <arg name="enable_color"     default="true" />
+  <arg name="enable_pointcloud" default="false" />
+
+  <!-- Launch the RealSense camera driver -->
+  <node pkg="realsense2_camera" type="realsense2_camera_node" name="$(arg camera_name)" output="screen">
+    <param name="serial_no"              value="$(arg serial_number)" />
+    <param name="rgb_camera/profile"     value="$(arg rgb_image_width) $(arg rgb_image_height) $(arg color_fps)" />
+    <param name="depth_module/profile"   value="$(arg rgb_image_width) $(arg rgb_image_height) $(arg depth_fps)" />
+    <param name="enable_depth"           value="$(arg enable_depth)" />
+    <param name="enable_color"           value="$(arg enable_color)" />
+    <param name="enable_pointcloud"      value="$(arg enable_pointcloud)" />
+    <param name="unite_imu_method"       value="none" />
+    <param name="publish_tf"             value="true" />
+    <param name="tf_publish_rate"        value="10.0" />
+  </node>
+
+  <!-- Run the D405 hand-eye calibration script -->
+  <node pkg="camera_calibration" type="calibrate_d405_hand_eye.py" name="calibrate_d405" output="screen" required="true">
+    <env name="PYTHONUNBUFFERED" value="1" />
+  </node>
+</launch>

@@ -1,0 +1,214 @@
+# =============================================================================
+# Camera Calibration Configuration
+# =============================================================================
+# All calibration parameters for the Franka robot vision system.
+# Override any value by setting the corresponding environment variable.
+#
+# Frame convention:
+#   T_a_to_b maps a point from frame A into frame B.
+#   p_b = T_a_to_b @ p_a
+#
+# Calibrated transforms (saved at runtime):
+#   T_d405_to_ee: D405 eye-in-hand camera frame -> robot end-effector frame
+#   T_d435_left_to_base: left D435 eye-to-hand camera frame -> robot base frame
+#   T_d435_right_to_base: right D435 eye-to-hand camera frame -> robot base frame
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# CAMERA HARDWARE
+# -----------------------------------------------------------------------------
+# Serial numbers for each camera. Set to empty string to skip that camera.
+# Each D435 has its own serial; calibrate them independently.
+d435_left_serial: ""
+d435_right_serial: ""
+d405_serial: "130322273025"
+
+# Image resolution (width, height) for each camera
+d435_resolution: [640, 480]
+d405_resolution: [1280, 720]
+
+# Frame rate for all cameras
+camera_fps: 30
+
+# Warmup time (seconds) for auto-exposure and laser to settle
+camera_warmup_seconds: 2.0
+
+# Timeout for waiting on camera frames (milliseconds)
+camera_frame_timeout_ms: 5000
+
+# -----------------------------------------------------------------------------
+# CHArUCO BOARD GEOMETRY
+# -----------------------------------------------------------------------------
+# Inner chessboard corners (not squares, not markers)
+charuco_board_inner_corners: [10, 7]
+
+# Physical size of each chessboard square in meters
+charuco_square_size_m: 0.02
+
+# Physical size of each ArUco marker in meters (must be < square_size)
+charuco_marker_size_m: 0.015
+
+# ArUco dictionary name
+charuco_aruco_dict_name: "DICT_5X5_50"
+
+# Whether the board uses OpenCV's pre-4.6 legacy marker layout
+charuco_legacy_pattern: true
+
+# -----------------------------------------------------------------------------
+# INTRINSIC CALIBRATION
+# -----------------------------------------------------------------------------
+# Number of images to capture for intrinsic calibration
+intrinsics_images_required: 20
+
+# Output paths for intrinsic calibration JSON files
+intrinsics_d435_path: "calibration_data/d435_intrinsics.json"
+intrinsics_d405_path: "calibration_data/d405_intrinsics.json"
+
+# -----------------------------------------------------------------------------
+# EYE-IN-HAND CALIBRATION (D405 on end-effector)
+# -----------------------------------------------------------------------------
+# The D405 is mounted on the robot wrist. The ChArUco board is fixed on the table.
+# This calibration finds T_d405_to_ee (D405 camera frame -> end-effector frame).
+#
+# Physical setup:
+#   - D405 rigidly mounted to the end-effector
+#   - ChArUco board flat on the table in the workspace
+#
+# Procedure:
+#   1. Move the robot so the D405 can see the board from many viewpoints
+#   2. At each viewpoint, the script records:
+#      - T_ee_to_base: from robot encoders
+#      - T_board_to_cam: from D405 image of the board
+#   3. OpenCV hand-eye solver (AX=XB) computes T_d405_to_ee
+#
+hand_eye_d405:
+  # Minimum ChArUco corners for a valid detection
+  min_charuco_corners: 15
+
+  # Number of poses to capture for calibration
+  poses_required: 6
+
+  # Planned-pose mode settings (when using a saved pose plan)
+  move_speed_mps: 0.025
+  move_rot_speed_radps: 0.25
+  settle_seconds: 2.0
+
+  # Output path for the hand-eye calibration result
+  output_path: "calibration_data/d405_to_ee.json"
+
+# -----------------------------------------------------------------------------
+# EYE-TO-HAND CALIBRATION (D435 fixed on table)
+# -----------------------------------------------------------------------------
+# Two D435 cameras are mounted symmetrically at 45 degrees from the workspace
+# center, angled downward. Each is calibrated independently using the same
+# ChArUco board mounted to the robot end-effector.
+#
+# Calibration procedure (per camera):
+#   1. Mount ChArUco board rigidly to the end-effector
+#   2. Move the robot so the selected D435 sees the board from many viewpoints
+#   3. At each viewpoint, record:
+#      - T_ee_to_base: from robot encoders
+#      - T_board_to_cam: from D435 image of the board
+#      - T_board_to_ee: from config (physical mount measurement)
+#   4. Compute T_cam_to_base = T_ee_to_base @ T_board_to_ee @ inv(T_board_to_cam)
+#   5. Average across all poses and save to a per-camera output file
+#
+# Usage:
+#   python calibrate_d435_bird_eye.py --camera left
+#   python calibrate_d435_bird_eye.py --camera right
+#
+# Each camera saves to its own output file:
+#   left  -> calibration_data/d435_left_to_base.json
+#   right -> calibration_data/d435_right_to_base.json
+#
+bird_eye_d435:
+  # Per-camera configuration
+  left:
+    # Serial number of the left D435 camera
+    serial: ""
+    # Output path for this camera's extrinsic calibration
+    output_path: "calibration_data/d435_left_to_base.json"
+    # Minimum ChArUco corners for a valid detection
+    min_charuco_corners: 15
+    # Number of poses to capture for calibration
+    poses_required: 6
+
+  right:
+    # Serial number of the right D435 camera
+    serial: ""
+    # Output path for this camera's extrinsic calibration
+    output_path: "calibration_data/d435_right_to_base.json"
+    # Minimum ChArUco corners for a valid detection
+    min_charuco_corners: 15
+    # Number of poses to capture for calibration
+    poses_required: 6
+
+  # Board-to-end-effector transform (physical mount measurement)
+  # Shared by both D435 cameras -- the board is mounted to the EE, not the cameras
+  # Translation: board origin expressed in EE coordinates (meters)
+  board_to_ee_translation_m: [0.0, 0.0, 0.0]
+  # RPY: board orientation relative to EE frame (degrees)
+  board_to_ee_rpy_deg: [0.0, 0.0, 0.0]
+
+# -----------------------------------------------------------------------------
+# ROBOT SETTINGS
+# -----------------------------------------------------------------------------
+# Franka robot IP address
+franka_ip: "10.31.82.199"
+
+# Collision thresholds used during calibration
+franka_collision_torque_nm: 20.0
+franka_collision_force_n: 20.0
+
+# Whether to require typed motion confirmation before robot moves
+require_motion_confirmation: true
+
+# Workspace bounds for pose validation (meters)
+workspace_min_m: [-0.8, -0.8, 0.0]
+workspace_max_m: [0.8, 0.8, 0.8]
+
+# -----------------------------------------------------------------------------
+# OUTPUT / STORAGE
+# -----------------------------------------------------------------------------
+# Root directory for all calibration output files
+calibration_data_dir: "calibration_data"
+
+# -----------------------------------------------------------------------------
+# ROS SETTINGS
+# -----------------------------------------------------------------------------
+# ROS frame names used during calibration
+ros_frames:
+  base: "base"                    # Robot base frame
+  ee: "ee_link"                   # Robot end-effector frame
+  d435_optical: "d435_cam_optical_frame"  # D435 camera optical frame
+  d405_optical: "d405_cam_optical_frame"  # D405 camera optical frame
+  charuco_board: "charuco_board"  # ChArUco board frame
+  world: "world"                  # World / table frame
+
+# ROS topic names for camera streams
+ros_topics:
+  d435_color: "/camera_d435/color/image_raw"
+  d435_depth: "/camera_d435/depth/image_rect_raw"
+  d435_camera_info: "/camera_d435/color/camera_info"
+  d405_color: "/camera_d405/color/image_raw"
+  d405_depth: "/camera_d405/depth/image_rect_raw"
+  d405_camera_info: "/camera_d405/color/camera_info"
+
+# Robot state topic (from franka_ros or similar)
+ros_topics:
+  franka_joint_states: "/franka_ros_controller/joint_states"
+  franka_ee_pose: "/franka_ros_controller/tool_pose"
+
+# -----------------------------------------------------------------------------
+# VALIDATION THRESHOLDS
+# -----------------------------------------------------------------------------
+# Hand-eye calibration validation
+hand_eye_max_rotation_error_deg: 5.0
+hand_eye_max_translation_error_m: 0.02
+
+# Bird's-eye calibration validation
+bird_eye_max_rotation_error_deg: 5.0
+bird_eye_max_translation_error_m: 0.02
+
+# Intrinsic calibration reprojection error threshold (pixels)
+intrinsics_max_reprojection_error_px: 1.0
